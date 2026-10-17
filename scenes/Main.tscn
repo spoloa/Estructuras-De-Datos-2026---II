@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://bxopteykr2dg5"]
 
 [ext_resource type="PackedScene" uid="uid://dbbpoeqhdi12b" path="res://scenes/Player.tscn" id="1_elqb8"]
+[ext_resource type="Script" uid="uid://dre8pd52428du" path="res://scripts/ui/HUD.gd" id="2_rvslj"]
 
 [node name="Main" type="Node2D" unique_id=1813334530]
 position = Vector2(-2, 0)
@@ -11,3 +12,11 @@ position = Vector2(145, 304)
 [node name="Camera2D" type="Camera2D" parent="." unique_id=2027565570]
 position = Vector2(590, 96)
 zoom = Vector2(0.5, 0.5)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1404226922]
+
+[node name="Label" type="Label" parent="CanvasLayer" unique_id=597926234 node_paths=PackedStringArray("player")]
+offset_right = 156.0
+offset_bottom = 57.0
+script = ExtResource("2_rvslj")
+player = NodePath("../../Player")
