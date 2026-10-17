@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://cncax81tlu6x5"]
+
+[ext_resource type="Script" uid="uid://drjtylkkkqq41" path="res://scripts/data_structures/test_structures.gd" id="1_errlg"]
+
+[node name="Node" type="Node" unique_id=230501462]
+script = ExtResource("1_errlg")
