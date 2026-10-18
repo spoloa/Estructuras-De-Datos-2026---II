@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://d044kcbmq1tgw"]
+
+[ext_resource type="Script" uid="uid://bvkb0pn72pqhb" path="res://scripts/enemy/enemy.gd" id="1_md0e3"]
+[ext_resource type="Texture2D" uid="uid://crwhojaxh8x5w" path="res://icon.svg" id="2_4ra3w"]
+[ext_resource type="PackedScene" uid="uid://dep7af4k40bxi" path="res://scenes/Bullet.tscn" id="2_5uy6h"]
+[ext_resource type="Resource" uid="uid://btx6b0s2qcah6" path="res://resources/weapons/enemy_shotgun.tres" id="3_5uy6h"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_60oq5"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_4ra3w")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1bfyb"]
+radius = 87.0919
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_60oq5"]
+radius = 427.00467
+
+[node name="Enemigo" type="CharacterBody2D" unique_id=2033281247]
+collision_mask = 0
+script = ExtResource("1_md0e3")
+max_health = 15
+bullet_scene = ExtResource("2_5uy6h")
+weapon = ExtResource("3_5uy6h")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1975904051]
+sprite_frames = SubResource("SpriteFrames_60oq5")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1100934700]
+shape = SubResource("CircleShape2D_1bfyb")
+
+[node name="DetectionArea" type="Area2D" parent="." unique_id=1468346477]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=1022299666]
+rotation = -6.2831855
+shape = SubResource("CircleShape2D_60oq5")
+
+[node name="RayCast2D" type="RayCast2D" parent="." unique_id=1979696416]
+
+[node name="Muzzle" type="Marker2D" parent="." unique_id=1819516750]
+
+[node name="ShootCooldown" type="Timer" parent="." unique_id=1572222633]
+
+[node name="HealthBar" type="ProgressBar" parent="." unique_id=23965081]
+offset_right = 4.0
+offset_bottom = 27.0

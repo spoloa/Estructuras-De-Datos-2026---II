@@ -2,6 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://dbbpoeqhdi12b" path="res://scenes/Player.tscn" id="1_elqb8"]
 [ext_resource type="Script" uid="uid://dre8pd52428du" path="res://scripts/ui/HUD.gd" id="2_rvslj"]
+[ext_resource type="PackedScene" uid="uid://d044kcbmq1tgw" path="res://scenes/enemy.tscn" id="3_0bbpv"]
 
 [node name="Main" type="Node2D" unique_id=1813334530]
 position = Vector2(-2, 0)
@@ -20,3 +21,6 @@ offset_right = 156.0
 offset_bottom = 57.0
 script = ExtResource("2_rvslj")
 player = NodePath("../../Player")
+
+[node name="Enemigo" parent="." unique_id=2033281247 instance=ExtResource("3_0bbpv")]
+position = Vector2(807, 301)

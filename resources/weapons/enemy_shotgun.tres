@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://btx6b0s2qcah6"]
+
+[ext_resource type="Script" uid="uid://bvw8flucf2bag" path="res://scripts/weapons/WeaponData.gd" id="1_a0v0b"]
+
+[resource]
+script = ExtResource("1_a0v0b")
+weapon_name = "Escopeta enemiga"
+fire_rate = 0.5
+bullet_speed = 400.0
+bullet_lifetime = 1.5
+bullets_per_shot = 4
+spread_degrees = 12.0
+metadata/_custom_type_script = "uid://bvw8flucf2bag"
