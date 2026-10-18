@@ -1,11 +1,19 @@
 [gd_scene format=3 uid="uid://bxopteykr2dg5"]
 
 [ext_resource type="PackedScene" uid="uid://dbbpoeqhdi12b" path="res://scenes/Player.tscn" id="1_elqb8"]
+[ext_resource type="PackedScene" uid="uid://d044kcbmq1tgw" path="res://scenes/enemy.tscn" id="2_rarhs"]
 [ext_resource type="Script" uid="uid://dre8pd52428du" path="res://scripts/ui/HUD.gd" id="2_rvslj"]
-[ext_resource type="PackedScene" uid="uid://d044kcbmq1tgw" path="res://scenes/enemy.tscn" id="3_0bbpv"]
+[ext_resource type="Script" uid="uid://b0yx358d7f6s4" path="res://scripts/wave_manager.gd" id="3_0bbpv"]
 
 [node name="Main" type="Node2D" unique_id=1813334530]
 position = Vector2(-2, 0)
+
+[node name="WaveManager" type="Node" parent="." unique_id=1287235243 node_paths=PackedStringArray("spawn_points")]
+script = ExtResource("3_0bbpv")
+enemy_scene = ExtResource("2_rarhs")
+spawn_points = [null, null]
+time_between_waves = 5.0
+spawn_interval = 2.0
 
 [node name="Player" parent="." unique_id=1419819270 instance=ExtResource("1_elqb8")]
 position = Vector2(145, 304)
@@ -22,5 +30,8 @@ offset_bottom = 57.0
 script = ExtResource("2_rvslj")
 player = NodePath("../../Player")
 
-[node name="Enemigo" parent="." unique_id=2033281247 instance=ExtResource("3_0bbpv")]
-position = Vector2(807, 301)
+[node name="spawn1" type="Marker2D" parent="." unique_id=1218797401]
+position = Vector2(775, 293)
+
+[node name="spawn2" type="Marker2D" parent="." unique_id=162030113]
+position = Vector2(130, -260)
