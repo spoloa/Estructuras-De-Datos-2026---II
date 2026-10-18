@@ -4,4 +4,6 @@
 
 [resource]
 script = ExtResource("1_1yi1s")
+fire_rate = 0.8
+bullet_lifetime = 2.5
 metadata/_custom_type_script = "uid://bvw8flucf2bag"

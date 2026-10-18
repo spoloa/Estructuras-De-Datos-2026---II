@@ -11,7 +11,7 @@ position = Vector2(-2, 0)
 [node name="WaveManager" type="Node" parent="." unique_id=1287235243 node_paths=PackedStringArray("spawn_points")]
 script = ExtResource("3_0bbpv")
 enemy_scene = ExtResource("2_rarhs")
-spawn_points = [null, null]
+spawn_points = [NodePath("../spawn1"), NodePath("../spawn2")]
 time_between_waves = 5.0
 spawn_interval = 2.0
 

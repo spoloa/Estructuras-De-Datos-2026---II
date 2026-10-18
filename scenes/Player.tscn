@@ -7,20 +7,21 @@
 [ext_resource type="Resource" uid="uid://3judgyo7ldga" path="res://resources/weapons/Escopeta.tres" id="3_mdl7e"]
 [ext_resource type="Resource" uid="uid://cdbx4u5nl87i1" path="res://resources/weapons/Pistola.tres" id="3_qu4a1"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_lok1f"]
-radius = 106.557976
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_otmr2"]
+size = Vector2(159.93416, 148.3812)
 
 [node name="Player" type="CharacterBody2D" unique_id=1419819270]
-scale = Vector2(1.2255043, 1.4489706)
+scale = Vector2(0.95, 0.95)
 script = ExtResource("1_v6fml")
 bullet_scene = ExtResource("2_mdl7e")
 starting_weapons = Array[ExtResource("3_70d11")]([ExtResource("3_qu4a1"), ExtResource("3_mdl7e")])
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1671900795]
 position = Vector2(-0.3243103, -0.12009424)
-scale = Vector2(1.2444185, 1.173527)
+scale = Vector2(0.95, 0.95)
 texture = ExtResource("1_p0vlq")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1358305760]
-position = Vector2(-1.1402893, -0.8102492)
-shape = SubResource("CircleShape2D_lok1f")
+position = Vector2(-3.4045783e-07, 0.34507644)
+scale = Vector2(0.95, 0.95)
+shape = SubResource("RectangleShape2D_otmr2")

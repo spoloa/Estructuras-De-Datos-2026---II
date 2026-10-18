@@ -1,52 +1,108 @@
 [gd_scene format=3 uid="uid://d044kcbmq1tgw"]
 
 [ext_resource type="Script" uid="uid://bvkb0pn72pqhb" path="res://scripts/enemy/enemy.gd" id="1_md0e3"]
-[ext_resource type="Texture2D" uid="uid://crwhojaxh8x5w" path="res://icon.svg" id="2_4ra3w"]
 [ext_resource type="PackedScene" uid="uid://dep7af4k40bxi" path="res://scenes/Bullet.tscn" id="2_5uy6h"]
-[ext_resource type="Resource" uid="uid://btx6b0s2qcah6" path="res://resources/weapons/enemy_shotgun.tres" id="3_5uy6h"]
+[ext_resource type="Resource" uid="uid://cdbx4u5nl87i1" path="res://resources/weapons/Pistola.tres" id="3_otmr2"]
+[ext_resource type="Texture2D" uid="uid://b42nqvboqs10b" path="res://animations/FreudBoy/sprite_00.png" id="4_otmr2"]
+[ext_resource type="Texture2D" uid="uid://hkkih17essgx" path="res://animations/FreudBoy/sprite_01.png" id="5_wtq4b"]
+[ext_resource type="Texture2D" uid="uid://yp0wty4c7or6" path="res://animations/FreudBoy/sprite_02.png" id="6_j0cyh"]
+[ext_resource type="Texture2D" uid="uid://cjoifar4orax7" path="res://animations/FreudBoy/sprite_03.png" id="7_g0wcc"]
+[ext_resource type="Texture2D" uid="uid://5ijbknlbobvn" path="res://animations/FreudBoy/sprite_04.png" id="8_s1ycm"]
+[ext_resource type="Texture2D" uid="uid://sp53he2y1udk" path="res://animations/FreudBoy/sprite_05.png" id="9_shcg2"]
+[ext_resource type="Texture2D" uid="uid://dokdwhyfpr5ec" path="res://animations/FreudBoy/sprite_06.png" id="10_ile5s"]
+[ext_resource type="Texture2D" uid="uid://cwxxsfaqkga6j" path="res://animations/FreudBoy/sprite_07.png" id="11_1x4g4"]
+[ext_resource type="Texture2D" uid="uid://c5u8lgaxhbn8y" path="res://animations/FreudBoy/sprite_08.png" id="12_2pwtc"]
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_60oq5"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("2_4ra3w")
+"texture": ExtResource("4_otmr2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("5_wtq4b")
+}, {
+"duration": 1.0,
+"texture": ExtResource("6_j0cyh")
+}, {
+"duration": 1.0,
+"texture": ExtResource("7_g0wcc")
+}, {
+"duration": 1.0,
+"texture": ExtResource("8_s1ycm")
+}, {
+"duration": 1.0,
+"texture": ExtResource("9_shcg2")
+}, {
+"duration": 1.0,
+"texture": ExtResource("10_ile5s")
+}, {
+"duration": 1.0,
+"texture": ExtResource("11_1x4g4")
+}, {
+"duration": 1.0,
+"texture": ExtResource("12_2pwtc")
 }],
 "loop": 1,
-"name": &"default",
+"name": &"FreudBoy",
 "speed": 5.0
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1bfyb"]
-radius = 87.0919
+radius = 70.55838
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_60oq5"]
-radius = 427.00467
+radius = 2284.7974
 
 [node name="Enemigo" type="CharacterBody2D" unique_id=2033281247]
+scale = Vector2(1.1, 1.1)
 collision_mask = 0
 script = ExtResource("1_md0e3")
 max_health = 15
 bullet_scene = ExtResource("2_5uy6h")
-weapon = ExtResource("3_5uy6h")
+weapon = ExtResource("3_otmr2")
+aim_delay = 0.5
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1975904051]
+position = Vector2(0.90909195, 1.9073486e-06)
+scale = Vector2(1.3210229, 1.196733)
 sprite_frames = SubResource("SpriteFrames_60oq5")
+animation = &"FreudBoy"
+autoplay = "FreudBoy"
+frame_progress = 0.40320617
+speed_scale = 1.1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1100934700]
+position = Vector2(0, -0.90908813)
+scale = Vector2(1.1, 1.1)
 shape = SubResource("CircleShape2D_1bfyb")
 
 [node name="DetectionArea" type="Area2D" parent="." unique_id=1468346477]
+scale = Vector2(1.1, 1.1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DetectionArea" unique_id=1022299666]
+position = Vector2(3.3057861, -6.1035156e-05)
 rotation = -6.2831855
+scale = Vector2(1.1, 1.1)
 shape = SubResource("CircleShape2D_60oq5")
 
 [node name="RayCast2D" type="RayCast2D" parent="." unique_id=1979696416]
+scale = Vector2(1.1, 1.1)
+hit_from_inside = true
+
+[node name="RayCast2D2" type="RayCast2D" parent="." unique_id=58698088]
+scale = Vector2(1.1, 1.1)
+hit_from_inside = true
 
 [node name="Muzzle" type="Marker2D" parent="." unique_id=1819516750]
+scale = Vector2(1.5, 1.5)
+gizmo_extents = 15.0
 
 [node name="ShootCooldown" type="Timer" parent="." unique_id=1572222633]
 
 [node name="HealthBar" type="ProgressBar" parent="." unique_id=23965081]
+offset_top = -2.7272725
 offset_right = 4.0
-offset_bottom = 27.0
+offset_bottom = 24.272728
+scale = Vector2(1.1, 1.1)
+metadata/_edit_use_anchors_ = true
