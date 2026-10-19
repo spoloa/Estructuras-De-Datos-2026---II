@@ -24,6 +24,7 @@ var _aiming := false
 
 
 func _ready() -> void:
+	add_to_group("enemy")
 	health = max_health
 	health_bar.max_value = max_health
 	health_bar.value = health

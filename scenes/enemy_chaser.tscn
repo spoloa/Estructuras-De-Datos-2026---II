@@ -1,0 +1,49 @@
+[gd_scene format=3 uid="uid://djv0erbfixs6f"]
+
+[ext_resource type="Script" uid="uid://cwgvxhx8w1c5m" path="res://scripts/enemy/enemy_chaser.gd" id="1_x7y0m"]
+[ext_resource type="Texture2D" uid="uid://crwhojaxh8x5w" path="res://icon.svg" id="2_wuvmb"]
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_60oq5"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("2_wuvmb")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1bfyb"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_60oq5"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_df6aj"]
+
+[node name="EnemyChaser" type="CharacterBody2D" unique_id=2104465105]
+collision_layer = 2
+collision_mask = 7
+script = ExtResource("1_x7y0m")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=774705752]
+sprite_frames = SubResource("SpriteFrames_60oq5")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1506181367]
+scale = Vector2(7, 7)
+shape = SubResource("CircleShape2D_1bfyb")
+
+[node name="DetectionArea" type="Area2D" parent="." unique_id=133734322]
+
+[node name="CollisionShape2D2" type="CollisionShape2D" parent="DetectionArea" unique_id=1947723521]
+scale = Vector2(50, 50)
+shape = SubResource("CircleShape2D_60oq5")
+
+[node name="ContactArea" type="Area2D" parent="." unique_id=523382604]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ContactArea" unique_id=1274672844]
+scale = Vector2(10, 10)
+shape = SubResource("CircleShape2D_df6aj")
+
+[node name="HealthBar" type="ProgressBar" parent="." unique_id=549016669]
+offset_right = 4.0
+offset_bottom = 27.0

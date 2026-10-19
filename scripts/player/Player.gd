@@ -26,6 +26,7 @@ var inventory: DynamicArray = DynamicArray.new()
 var _slot: int = 0          # posición del arma equipada dentro del inventario
 var _cooldown: float = 0.0  # segundos que faltan para poder volver a disparar
 
+@onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 func _ready() -> void:
 	health = max_health
@@ -78,9 +79,18 @@ func _move() -> void:
 	var direction := Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	velocity = direction * speed
 	move_and_slide()
+	_update_animation(direction)
 
-
-## Dispara según los datos del arma equipada.
+func _update_animation(direction: Vector2) -> void:
+	if sprite == null:
+		return
+	var anim := "walk" if direction != Vector2.ZERO else "idle"
+	if sprite.animation != anim:
+		sprite.play(anim)
+	# Mira hacia donde apunta el mouse, que es donde dispara
+	sprite.flip_h = get_global_mouse_position().x < global_position.x
+	
+## DDispara según los datos del arma equipada.
 func _shoot() -> void:
 	if weapon == null or bullet_scene == null:
 		return
