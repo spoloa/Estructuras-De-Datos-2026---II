@@ -52,7 +52,7 @@ animations = [{
 radius = 70.55838
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_60oq5"]
-radius = 2284.7974
+radius = 731.0953
 
 [node name="Enemigo" type="CharacterBody2D" unique_id=2033281247]
 scale = Vector2(1.1, 1.1)
