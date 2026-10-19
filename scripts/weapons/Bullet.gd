@@ -26,7 +26,10 @@ func _physics_process(delta: float) -> void:
 
 func _on_body_entered(body: Node) -> void:
 	if body == shooter:
-		return  # no golpea a quien la disparó
+		return
+	# Sin fuego amigo: las balas de un enemigo atraviesan a otros enemigos
+	if is_instance_valid(shooter) and shooter is Enemy and body is Enemy:
+		return
 	if body.has_method("take_damage"):
 		body.take_damage(damage)
 	queue_free()

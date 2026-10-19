@@ -8,6 +8,7 @@ radius = 8.456133
 
 [node name="Bullet" type="Area2D" unique_id=1662440076]
 scale = Vector2(1.5, 1.5)
+collision_mask = 3
 script = ExtResource("1_p1sfj")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=923111986]

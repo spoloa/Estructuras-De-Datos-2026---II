@@ -7,6 +7,17 @@
 [ext_resource type="Resource" uid="uid://3judgyo7ldga" path="res://resources/weapons/Escopeta.tres" id="3_mdl7e"]
 [ext_resource type="Resource" uid="uid://cdbx4u5nl87i1" path="res://resources/weapons/Pistola.tres" id="3_qu4a1"]
 
+[sub_resource type="SpriteFrames" id="SpriteFrames_60oq5"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": ExtResource("1_p0vlq")
+}],
+"loop": 1,
+"name": &"new_animation",
+"speed": 5.0
+}]
+
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_otmr2"]
 size = Vector2(159.93416, 148.3812)
 
@@ -16,10 +27,11 @@ script = ExtResource("1_v6fml")
 bullet_scene = ExtResource("2_mdl7e")
 starting_weapons = Array[ExtResource("3_70d11")]([ExtResource("3_qu4a1"), ExtResource("3_mdl7e")])
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1671900795]
-position = Vector2(-0.3243103, -0.12009424)
-scale = Vector2(0.95, 0.95)
-texture = ExtResource("1_p0vlq")
+[node name="Sprite2D" type="AnimatedSprite2D" parent="." unique_id=1968789951]
+position = Vector2(-5.722046e-06, 0.5263176)
+scale = Vector2(1.1842104, 1.1101974)
+sprite_frames = SubResource("SpriteFrames_60oq5")
+animation = &"new_animation"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1358305760]
 position = Vector2(-3.4045783e-07, 0.34507644)

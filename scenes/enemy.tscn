@@ -56,7 +56,8 @@ radius = 2284.7974
 
 [node name="Enemigo" type="CharacterBody2D" unique_id=2033281247]
 scale = Vector2(1.1, 1.1)
-collision_mask = 0
+collision_layer = 2
+collision_mask = 3
 script = ExtResource("1_md0e3")
 max_health = 15
 bullet_scene = ExtResource("2_5uy6h")
@@ -69,7 +70,7 @@ scale = Vector2(1.3210229, 1.196733)
 sprite_frames = SubResource("SpriteFrames_60oq5")
 animation = &"FreudBoy"
 autoplay = "FreudBoy"
-frame_progress = 0.40320617
+frame_progress = 0.19868428
 speed_scale = 1.1
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1100934700]
