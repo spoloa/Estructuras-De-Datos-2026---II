@@ -55,8 +55,8 @@ script = ExtResource("3_0bbpv")
 shooter_scene = ExtResource("2_rarhs")
 chaser_scene = ExtResource("5_vcsgt")
 spawn_points = [NodePath("../spawn1"), NodePath("../spawn2")]
-time_between_waves = 5.0
-spawn_interval = 2.0
+time_between_waves = 6.0
+spawn_interval = 2.5
 
 [node name="Player" parent="." unique_id=1419819270 instance=ExtResource("1_elqb8")]
 position = Vector2(145, 304)
