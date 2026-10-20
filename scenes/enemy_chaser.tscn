@@ -14,26 +14,28 @@ animations = [{
 "speed": 5.0
 }]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_1bfyb"]
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_frmjw"]
+size = Vector2(18.285713, 18.285713)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_60oq5"]
-radius = 92.36031
+radius = 396.2729
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_df6aj"]
+radius = 8.500587
 
 [node name="EnemyChaser" type="CharacterBody2D" unique_id=2104465105]
 collision_layer = 2
 collision_mask = 7
 script = ExtResource("1_x7y0m")
 max_health = 20
-move_speed = 200.0
+move_speed = 225.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=774705752]
 sprite_frames = SubResource("SpriteFrames_60oq5")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1506181367]
 scale = Vector2(7, 7)
-shape = SubResource("CircleShape2D_1bfyb")
+shape = SubResource("RectangleShape2D_frmjw")
 
 [node name="DetectionArea" type="Area2D" parent="." unique_id=133734322]
 

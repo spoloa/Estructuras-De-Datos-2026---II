@@ -45,9 +45,15 @@ func _physics_process(delta: float) -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("switch_weapon"):
 		equip_weapon((_slot + 1) % maxi(1, inventory.size()))
-	elif event.is_action_pressed("ui_accept"):
-		take_damage(1)  # TEMPORAL: prueba de vida con Espacio/Enter, borrar cuando haya enemigos
 
+
+## Recupera vida sin pasar del máximo. Lo usarán ítems como el corazón.
+func heal(amount: int) -> void:
+	if health <= 0:
+		return # Un jugador muerto no se cura  
+		
+	health = mini(max_health, health + amount)
+	health_changed.emit(health, max_health)
 
 ## Agrega un arma al inventario (por ejemplo, al recogerla del suelo).
 func add_weapon(new_weapon: WeaponData) -> void:

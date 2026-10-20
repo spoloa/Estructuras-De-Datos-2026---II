@@ -84,10 +84,10 @@ func _shoot_at_player() -> void:
 	var base_dir := (target - muzzle.global_position).normalized()
 	for i in weapon.bullets_per_shot:
 		var angle := deg_to_rad(randf_range(-weapon.spread_degrees, weapon.spread_degrees))
-		var bullet: Bullet = bullet_scene.instantiate()
+		var bullet: EnemyBullet = bullet_scene.instantiate()
 		get_tree().current_scene.add_child(bullet)
 		bullet.global_position = muzzle.global_position
-		bullet.setup(base_dir.rotated(angle), weapon.bullet_speed, weapon.damage, weapon.bullet_lifetime, self)
+		bullet.setup(base_dir.rotated(angle), weapon.bullet_speed, weapon.damage, weapon.bullet_lifetime)
 
 
 func take_damage(amount: int) -> void:

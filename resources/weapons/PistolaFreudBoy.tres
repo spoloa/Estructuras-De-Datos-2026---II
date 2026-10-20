@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://cb6lsptdkufma"]
+
+[ext_resource type="Script" uid="uid://bvw8flucf2bag" path="res://scripts/weapons/WeaponData.gd" id="1_8il7r"]
+
+[resource]
+script = ExtResource("1_8il7r")
+fire_rate = 0.8
+bullet_lifetime = 5.0
+metadata/_custom_type_script = "uid://bvw8flucf2bag"

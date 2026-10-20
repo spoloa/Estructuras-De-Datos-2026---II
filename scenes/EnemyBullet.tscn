@@ -1,0 +1,22 @@
+[gd_scene format=3 uid="uid://r873di4a8aot"]
+
+[ext_resource type="Script" uid="uid://boq346soryifd" path="res://scripts/weapons/EnemyBullet.gd" id="1_s6wdq"]
+[ext_resource type="Texture2D" uid="uid://bxe3o21lweogj" path="res://animations/FreudBoy/sprite_09.png" id="2_la4vt"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lok1f"]
+size = Vector2(22.75132, 8.994709)
+
+[node name="EnemyBullet" type="Area2D" unique_id=521943373]
+scale = Vector2(2.1, 2.1)
+script = ExtResource("1_s6wdq")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1305456233]
+position = Vector2(0, 1.9073486e-06)
+rotation = -3.1415927
+scale = Vector2(0.17911588, 0.14545733)
+texture = ExtResource("2_la4vt")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1393628589]
+position = Vector2(-0.71428555, 0.2380952)
+scale = Vector2(0.9000002, 0.9000002)
+shape = SubResource("RectangleShape2D_lok1f")

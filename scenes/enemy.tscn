@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://d044kcbmq1tgw"]
 
 [ext_resource type="Script" uid="uid://bvkb0pn72pqhb" path="res://scripts/enemy/enemy.gd" id="1_md0e3"]
-[ext_resource type="PackedScene" uid="uid://dep7af4k40bxi" path="res://scenes/Bullet.tscn" id="2_5uy6h"]
-[ext_resource type="Resource" uid="uid://cdbx4u5nl87i1" path="res://resources/weapons/Pistola.tres" id="3_otmr2"]
+[ext_resource type="PackedScene" uid="uid://r873di4a8aot" path="res://scenes/EnemyBullet.tscn" id="2_otmr2"]
+[ext_resource type="Resource" uid="uid://btx6b0s2qcah6" path="res://resources/weapons/enemy_shotgun.tres" id="3_otmr2"]
 [ext_resource type="Texture2D" uid="uid://b42nqvboqs10b" path="res://animations/FreudBoy/sprite_00.png" id="4_otmr2"]
 [ext_resource type="Texture2D" uid="uid://hkkih17essgx" path="res://animations/FreudBoy/sprite_01.png" id="5_wtq4b"]
 [ext_resource type="Texture2D" uid="uid://yp0wty4c7or6" path="res://animations/FreudBoy/sprite_02.png" id="6_j0cyh"]
@@ -49,10 +49,10 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_1bfyb"]
-radius = 70.55838
+radius = 53.534325
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_60oq5"]
-radius = 731.0953
+radius = 10506.423
 
 [node name="Enemigo" type="CharacterBody2D" unique_id=2033281247]
 scale = Vector2(1.1, 1.1)
@@ -60,13 +60,15 @@ collision_layer = 2
 collision_mask = 3
 script = ExtResource("1_md0e3")
 max_health = 15
-bullet_scene = ExtResource("2_5uy6h")
+bullet_scene = ExtResource("2_otmr2")
 weapon = ExtResource("3_otmr2")
-aim_delay = 0.5
+aim_delay = 0.0
+move_speed = 150.0
+stop_distance = 200.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1975904051]
 position = Vector2(0.90909195, 1.9073486e-06)
-scale = Vector2(1.3210229, 1.196733)
+scale = Vector2(1, 0.906)
 sprite_frames = SubResource("SpriteFrames_60oq5")
 animation = &"FreudBoy"
 autoplay = "FreudBoy"

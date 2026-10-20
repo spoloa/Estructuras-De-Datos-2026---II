@@ -1,13 +1,54 @@
 [gd_scene format=3 uid="uid://bxopteykr2dg5"]
 
+[ext_resource type="Texture2D" uid="uid://crwhojaxh8x5w" path="res://icon.svg" id="1_c01mt"]
 [ext_resource type="PackedScene" uid="uid://dbbpoeqhdi12b" path="res://scenes/Player.tscn" id="1_elqb8"]
 [ext_resource type="PackedScene" uid="uid://d044kcbmq1tgw" path="res://scenes/enemy.tscn" id="2_rarhs"]
 [ext_resource type="Script" uid="uid://dre8pd52428du" path="res://scripts/ui/HUD.gd" id="2_rvslj"]
 [ext_resource type="Script" uid="uid://b0yx358d7f6s4" path="res://scripts/wave_manager.gd" id="3_0bbpv"]
 [ext_resource type="PackedScene" uid="uid://djv0erbfixs6f" path="res://scenes/enemy_chaser.tscn" id="5_vcsgt"]
 
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rkej8"]
+size = Vector2(4168, 60)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_3kpar"]
+size = Vector2(824.9999, 20)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_p4qie"]
+size = Vector2(20, 491.79996)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_kuu7v"]
+size = Vector2(29.800003, 514.6)
+
 [node name="Main" type="Node2D" unique_id=1813334530]
 position = Vector2(-2, 0)
+
+[node name="TextureRect" type="TextureRect" parent="." unique_id=348086992]
+offset_left = -1785.0
+offset_top = -773.0
+offset_right = 2070.0
+offset_bottom = 1390.0
+texture = ExtResource("1_c01mt")
+
+[node name="Paredes" type="StaticBody2D" parent="." unique_id=523021359]
+
+[node name="Arriba" type="CollisionShape2D" parent="Paredes" unique_id=816674834]
+position = Vector2(156, -803)
+shape = SubResource("RectangleShape2D_rkej8")
+
+[node name="Abajo" type="CollisionShape2D" parent="Paredes" unique_id=32326430]
+position = Vector2(186.5, 1440)
+scale = Vector2(5, 5)
+shape = SubResource("RectangleShape2D_3kpar")
+
+[node name="Izquierda" type="CollisionShape2D" parent="Paredes" unique_id=693610329]
+position = Vector2(-1835, 257.50006)
+scale = Vector2(5, 5)
+shape = SubResource("RectangleShape2D_p4qie")
+
+[node name="Derecha" type="CollisionShape2D" parent="Paredes" unique_id=910259104]
+position = Vector2(2144.5, 280.5)
+scale = Vector2(5, 5)
+shape = SubResource("RectangleShape2D_kuu7v")
 
 [node name="WaveManager" type="Node" parent="." unique_id=1287235243 node_paths=PackedStringArray("spawn_points")]
 script = ExtResource("3_0bbpv")
@@ -20,10 +61,6 @@ spawn_interval = 2.0
 [node name="Player" parent="." unique_id=1419819270 instance=ExtResource("1_elqb8")]
 position = Vector2(145, 304)
 
-[node name="Camera2D" type="Camera2D" parent="." unique_id=2027565570]
-position = Vector2(590, 96)
-zoom = Vector2(0.5, 0.5)
-
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1404226922]
 
 [node name="Label" type="Label" parent="CanvasLayer" unique_id=597926234 node_paths=PackedStringArray("player")]
@@ -33,7 +70,7 @@ script = ExtResource("2_rvslj")
 player = NodePath("../../Player")
 
 [node name="spawn1" type="Marker2D" parent="." unique_id=1218797401]
-position = Vector2(775, 293)
+position = Vector2(1131, -246)
 
 [node name="spawn2" type="Marker2D" parent="." unique_id=162030113]
-position = Vector2(130, -260)
+position = Vector2(-826, -225)

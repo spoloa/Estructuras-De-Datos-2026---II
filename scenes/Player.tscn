@@ -84,23 +84,34 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_otmr2"]
-size = Vector2(55.40166, 122.9917)
+size = Vector2(37.192986, 82.10526)
 
 [node name="Player" type="CharacterBody2D" unique_id=1419819270]
 scale = Vector2(0.95, 0.95)
 script = ExtResource("1_v6fml")
+speed = 350.0
 bullet_scene = ExtResource("2_mdl7e")
 starting_weapons = Array[ExtResource("3_70d11")]([ExtResource("3_qu4a1"), ExtResource("3_mdl7e")])
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=1968789951]
 position = Vector2(8.421051, -6.3157654)
-scale = Vector2(0.28453952, 0.29221487)
+scale = Vector2(0.3, 0.307)
 sprite_frames = SubResource("SpriteFrames_60oq5")
 animation = &"walk"
 frame = 3
 frame_progress = 0.44293785
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1358305760]
-position = Vector2(0, 5.789474)
-scale = Vector2(0.95, 0.95)
+position = Vector2(-0.5263152, 5.789471)
+scale = Vector2(1.5, 1.5)
 shape = SubResource("RectangleShape2D_otmr2")
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=155178203]
+zoom = Vector2(0.5, 0.5)
+limit_left = -1785
+limit_top = -773
+limit_right = 2070
+limit_bottom = 1390
+limit_smoothed = true
+position_smoothing_enabled = true
+rotation_smoothing_enabled = true

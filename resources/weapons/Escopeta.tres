@@ -5,8 +5,9 @@
 [resource]
 script = ExtResource("1_ga2pb")
 weapon_name = "Escopeta"
-fire_rate = 1.5
-bullet_speed = 500.0
+damage = 2
+fire_rate = 0.5
+bullet_lifetime = 0.8
 bullets_per_shot = 5
 spread_degrees = 12.0
 metadata/_custom_type_script = "uid://bvw8flucf2bag"
