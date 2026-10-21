@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://dre8pd52428du" path="res://scripts/ui/HUD.gd" id="2_rvslj"]
 [ext_resource type="Script" uid="uid://b0yx358d7f6s4" path="res://scripts/wave_manager.gd" id="3_0bbpv"]
 [ext_resource type="PackedScene" uid="uid://djv0erbfixs6f" path="res://scenes/enemy_chaser.tscn" id="5_vcsgt"]
+[ext_resource type="Script" uid="uid://dmawyu8jhvjtd" path="res://scripts/managers/GameFlow.gd" id="7_nxtc6"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rkej8"]
 size = Vector2(4168, 60)
@@ -63,14 +64,20 @@ position = Vector2(145, 304)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1404226922]
 
-[node name="Label" type="Label" parent="CanvasLayer" unique_id=597926234 node_paths=PackedStringArray("player")]
+[node name="Label" type="Label" parent="CanvasLayer" unique_id=597926234 node_paths=PackedStringArray("player", "wave_manager")]
 offset_right = 156.0
 offset_bottom = 57.0
 script = ExtResource("2_rvslj")
 player = NodePath("../../Player")
+wave_manager = NodePath("../../WaveManager")
 
 [node name="spawn1" type="Marker2D" parent="." unique_id=1218797401]
 position = Vector2(1131, -246)
 
 [node name="spawn2" type="Marker2D" parent="." unique_id=162030113]
 position = Vector2(-826, -225)
+
+[node name="GameFlow" type="Node" parent="." unique_id=1953034399 node_paths=PackedStringArray("player", "wave_manager")]
+script = ExtResource("7_nxtc6")
+player = NodePath("../Player")
+wave_manager = NodePath("../WaveManager")
