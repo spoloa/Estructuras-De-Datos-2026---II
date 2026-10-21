@@ -2,20 +2,24 @@ class_name ItemPickup
 extends Area2D
 ## Ítem recolectable en el suelo. Se crea completo desde código (no necesita escena).
 ## Tipos:
-##   HEART  -> círculo rojo con una cruz: cura al jugador (Player.heal).
-##   WEAPON -> círculo amarillo: agrega un arma al inventario (Player.add_weapon).
+##   CONSUMABLE -> objeto usable con cooldown (ej. corazón): va al inventario de consumibles.
+##   WEAPON     -> arma: se agrega al inventario de armas (Player.add_weapon).
 
-enum Kind { HEART, WEAPON }
+enum Kind { CONSUMABLE, WEAPON }
 
 ## Tipo de ítem.
-@export var kind: Kind = Kind.HEART
-## Vida que cura (solo para HEART).
-@export var heal_amount: int = 1
+@export var kind: Kind = Kind.CONSUMABLE
+## Objeto que entrega (solo para CONSUMABLE).
+@export var consumable: ConsumableData
 ## Arma que entrega (solo para WEAPON).
 @export var weapon: WeaponData
 
-## Radio del ítem en píxeles (dibujo y colisión).
-const RADIUS: float = 18.0
+## Textura del arma en el suelo (ajusta la ruta a tu PNG).
+const WEAPON_TEXTURE: Texture2D = preload("res://assets/items/escopeta.png")
+## Radio de colisión del ítem en píxeles.
+const RADIUS: float = 50.0
+## Tamaño con el que se muestra el ítem en pantalla (lado más grande, en píxeles).
+const DISPLAY_SIZE: float = 100.0
 
 
 func _ready() -> void:
@@ -24,20 +28,25 @@ func _ready() -> void:
 	circle.radius = RADIUS
 	shape.shape = circle
 	add_child(shape)
-	body_entered.connect(_on_body_entered)
-	queue_redraw()
 
-
-## Dibujo provisional del ítem.
-func _draw() -> void:
+	var sprite := Sprite2D.new()
 	match kind:
-		Kind.HEART:
-			draw_circle(Vector2.ZERO, RADIUS, Color(0.9, 0.15, 0.2))
-			draw_rect(Rect2(-9, -3, 18, 6), Color.WHITE)
-			draw_rect(Rect2(-3, -9, 6, 18), Color.WHITE)
+		Kind.CONSUMABLE:
+			if consumable != null:
+				sprite.texture = consumable.icon
 		Kind.WEAPON:
-			draw_circle(Vector2.ZERO, RADIUS, Color(0.95, 0.75, 0.1))
-			draw_rect(Rect2(-10, -4, 20, 8), Color(0.2, 0.2, 0.2))
+			# Cada arma puede traer su propia imagen (WeaponData.icon).
+			if weapon != null and weapon.icon != null:
+				sprite.texture = weapon.icon
+			else:
+				sprite.texture = WEAPON_TEXTURE
+	if sprite.texture != null:
+		var tex_size: Vector2 = sprite.texture.get_size()
+		var factor: float = DISPLAY_SIZE / maxf(tex_size.x, tex_size.y)
+		sprite.scale = Vector2(factor, factor)
+	add_child(sprite)
+
+	body_entered.connect(_on_body_entered)
 
 
 func _on_body_entered(body: Node2D) -> void:
@@ -46,10 +55,10 @@ func _on_body_entered(body: Node2D) -> void:
 		return  # solo el jugador recoge ítems
 
 	match kind:
-		Kind.HEART:
-			if player.health >= player.max_health:
-				return  # vida llena: el corazón se queda en el suelo
-			player.heal(heal_amount)
+		Kind.CONSUMABLE:
+			if consumable == null or player.consumables.has(consumable):
+				return  # no repetir objetos
+			player.add_consumable(consumable)
 		Kind.WEAPON:
 			if weapon == null or player.inventory.contains(weapon):
 				return  # no repetir armas (usa DynamicArray.contains)

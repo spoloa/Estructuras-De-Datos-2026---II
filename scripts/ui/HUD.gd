@@ -24,6 +24,11 @@ var _health_bar: ProgressBar
 var _health_label: Label
 var _weapon_name: Label
 var _weapon_pips: HBoxContainer
+var _item_icon: TextureRect
+var _item_name: Label
+var _item_bar: ProgressBar
+var _item_status: Label
+var _item: ConsumableData  # objeto usable que se muestra (null = casilla vacía)
 var _wave_value: Label
 var _banner: Label
 var _health_tween: Tween
@@ -60,6 +65,7 @@ func _ready() -> void:
 
 	_build_health(left)
 	_build_weapon(left)
+	_build_item(left)
 	_build_wave(right)
 	_build_banner()
 	_ignore_mouse(self)  # el HUD nunca debe bloquear clics
@@ -100,7 +106,7 @@ func _build_health(parent: Control) -> void:
 	var heart := HeartIcon.new()
 	heart.custom_minimum_size = Vector2(22, 22)
 	heart.size = Vector2(22, 22)
-	heart.position = Vector2(8, 5)
+	heart.position = Vector2(8, 4)
 	_health_bar.add_child(heart)
 
 	# Texto centrado dentro de la barra.
@@ -144,6 +150,92 @@ func _build_weapon(parent: Control) -> void:
 	bottom.add_child(spacer)
 
 	bottom.add_child(_make_caption("[Q] CAMBIAR"))
+
+
+## Objeto usable (corazón): icono, nombre, barra de recarga y tecla para usarlo.
+func _build_item(parent: Control) -> void:
+	var frame := _make_frame()
+	parent.add_child(frame)
+
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 4)
+	frame.add_child(col)
+
+	col.add_child(_make_caption("OBJETO"))
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	col.add_child(row)
+
+	_item_icon = TextureRect.new()
+	_item_icon.custom_minimum_size = Vector2(50, 50)
+	_item_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_item_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	row.add_child(_item_icon)
+
+	var info := VBoxContainer.new()
+	info.add_theme_constant_override("separation", 2)
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(info)
+
+	_item_name = Label.new()
+	_item_name.add_theme_font_size_override("font_size", 18)
+	_item_name.add_theme_color_override("font_color", CREAM)
+	info.add_child(_item_name)
+
+	# Barra de recarga: se va llenando hasta que el objeto está listo.
+	_item_bar = ProgressBar.new()
+	_item_bar.custom_minimum_size = Vector2(0, 8)
+	_item_bar.show_percentage = false
+	_item_bar.min_value = 0.0
+	_item_bar.max_value = 1.0
+	var bar_bg := StyleBoxFlat.new()
+	bar_bg.bg_color = PIP_OFF
+	var bar_fill := StyleBoxFlat.new()
+	bar_fill.bg_color = GOLD
+	_item_bar.add_theme_stylebox_override("background", bar_bg)
+	_item_bar.add_theme_stylebox_override("fill", bar_fill)
+	info.add_child(_item_bar)
+
+	_item_status = _make_caption("")
+	info.add_child(_item_status)
+
+	_refresh_item()
+
+
+## Actualiza icono, nombre y estado del panel de objeto.
+func _refresh_item() -> void:
+	if _item == null:
+		_item_icon.texture = null
+		_item_name.text = "VACÍO"
+		_item_name.modulate = Color(1, 1, 1, 0.4)
+		_item_bar.value = 0.0
+		_item_status.text = "---"
+		return
+	_item_icon.texture = _item.icon
+	_item_name.text = _item.display_name.to_upper()
+	_item_name.modulate = Color.WHITE
+	_update_item_cooldown()
+
+
+## Barra y texto de recarga (se llama cada frame desde _process).
+func _update_item_cooldown() -> void:
+	if _item == null or player == null:
+		return
+	var left: float = player.get_item_cooldown_left(_item)
+	if left > 0.0 and _item.cooldown > 0.0:
+		_item_bar.value = 1.0 - left / _item.cooldown
+		_item_status.text = "%.1fs" % left
+		_item_icon.modulate = Color(0.45, 0.45, 0.45)  # apagado mientras recarga
+	else:
+		_item_bar.value = 1.0
+		_item_status.text = "LISTO [E]"
+		_item_icon.modulate = Color.WHITE
+
+
+func _process(_delta: float) -> void:
+	_update_item_cooldown()
 
 
 ## Panel de la oleada actual (esquina superior derecha).
@@ -240,6 +332,10 @@ func _connect_signals() -> void:
 	else:
 		player.health_changed.connect(_on_health_changed)
 		player.weapon_changed.connect(_on_weapon_changed)
+		player.consumable_added.connect(_on_consumable_added)
+		if not player.consumables.is_empty():
+			_item = player.consumables[0]
+			_refresh_item()
 		# El Player ya se inicializó antes que el HUD, así que leemos su estado actual.
 		_on_health_changed(player.health, player.max_health)
 		_on_weapon_changed(player.weapon, 0, player.inventory.size())
@@ -280,6 +376,14 @@ func _on_weapon_changed(weapon: WeaponData, slot: int, total: int) -> void:
 		pip.color = GOLD if i == slot else PIP_OFF
 		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_weapon_pips.add_child(pip)
+
+
+## Al recoger un objeto usable se muestra en el panel y se avisa con el banner.
+func _on_consumable_added(data: ConsumableData) -> void:
+	if _item == null:
+		_item = data
+		_refresh_item()
+	_show_banner("¡%s! [E] PARA USAR" % data.display_name.to_upper())
 
 
 ## Cuando empieza una oleada, el WaveManager ya sacó esa oleada de su cola (Queue),

@@ -17,3 +17,15 @@ extends Resource
 @export var bullets_per_shot: int = 1
 ## Dispersión máxima en grados (0 = puntería perfecta).
 @export var spread_degrees: float = 0.0
+## Imagen del arma en el suelo (si queda vacía se usa la imagen por defecto).
+@export var icon: Texture2D
+
+@export_group("Bomba")
+## Si es true, el arma lanza una bomba en vez de disparar balas.
+## Usa bullet_speed como velocidad del lanzamiento y bullet_lifetime como tiempo máximo
+## de vuelo (alcance = velocidad x tiempo). fire_rate es lanzamientos por segundo.
+@export var is_bomb: bool = false
+## Radio de la explosión en píxeles (solo bombas).
+@export var blast_radius: float = 120.0
+## Escena de la bomba (Bomb.tscn, solo bombas).
+@export var bomb_scene: PackedScene

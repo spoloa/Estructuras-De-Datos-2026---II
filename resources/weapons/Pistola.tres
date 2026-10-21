@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_1yi1s")
+weapon_name = "Pistola"
 damage = 2
 fire_rate = 2.0
 bullet_speed = 850.0

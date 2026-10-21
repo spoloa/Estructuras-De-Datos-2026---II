@@ -1,12 +1,15 @@
 [gd_scene format=3 uid="uid://bxopteykr2dg5"]
 
-[ext_resource type="Texture2D" uid="uid://crwhojaxh8x5w" path="res://icon.svg" id="1_c01mt"]
 [ext_resource type="PackedScene" uid="uid://dbbpoeqhdi12b" path="res://scenes/Player.tscn" id="1_elqb8"]
+[ext_resource type="Texture2D" uid="uid://c7glof864oi4v" path="res://Tilesets/Freud (1).png" id="1_nxtc6"]
 [ext_resource type="PackedScene" uid="uid://d044kcbmq1tgw" path="res://scenes/enemy.tscn" id="2_rarhs"]
-[ext_resource type="Script" uid="uid://dre8pd52428du" path="res://scripts/ui/HUD.gd" id="2_rvslj"]
+[ext_resource type="Script" uid="uid://b52oeh61yeael" path="res://scripts/ui/HUD.gd" id="2_rvslj"]
 [ext_resource type="Script" uid="uid://b0yx358d7f6s4" path="res://scripts/wave_manager.gd" id="3_0bbpv"]
 [ext_resource type="PackedScene" uid="uid://djv0erbfixs6f" path="res://scenes/enemy_chaser.tscn" id="5_vcsgt"]
+[ext_resource type="Script" uid="uid://bvw8flucf2bag" path="res://scripts/weapons/WeaponData.gd" id="6_q8u5g"]
+[ext_resource type="Resource" uid="uid://cdbx4u5nl87i1" path="res://resources/weapons/Pistola.tres" id="7_lhr70"]
 [ext_resource type="Script" uid="uid://dmawyu8jhvjtd" path="res://scripts/managers/GameFlow.gd" id="7_nxtc6"]
+[ext_resource type="AudioStream" uid="uid://blyajo1nswxgy" path="res://assets/musica/bienvenidoalapatriamilagro.mp3" id="10_lhr70"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rkej8"]
 size = Vector2(4168, 60)
@@ -28,7 +31,7 @@ offset_left = -1785.0
 offset_top = -773.0
 offset_right = 2070.0
 offset_bottom = 1390.0
-texture = ExtResource("1_c01mt")
+texture = ExtResource("1_nxtc6")
 
 [node name="Paredes" type="StaticBody2D" parent="." unique_id=523021359]
 
@@ -61,6 +64,7 @@ spawn_interval = 2.5
 
 [node name="Player" parent="." unique_id=1419819270 instance=ExtResource("1_elqb8")]
 position = Vector2(145, 304)
+starting_weapons = Array[ExtResource("6_q8u5g")]([ExtResource("7_lhr70")])
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1404226922]
 
@@ -72,12 +76,20 @@ player = NodePath("../../Player")
 wave_manager = NodePath("../../WaveManager")
 
 [node name="spawn1" type="Marker2D" parent="." unique_id=1218797401]
-position = Vector2(1131, -246)
+position = Vector2(1928, -690)
 
 [node name="spawn2" type="Marker2D" parent="." unique_id=162030113]
-position = Vector2(-826, -225)
+position = Vector2(-1641, -683)
 
 [node name="GameFlow" type="Node" parent="." unique_id=1953034399 node_paths=PackedStringArray("player", "wave_manager")]
 script = ExtResource("7_nxtc6")
 player = NodePath("../Player")
 wave_manager = NodePath("../WaveManager")
+end_delay = 2.0
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1281693585]
+stream = ExtResource("10_lhr70")
+volume_db = 1.793
+pitch_scale = 0.9
+autoplay = true
+parameters/looping = true
