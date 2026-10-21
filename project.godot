@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="Bienvenido a la patria milagro"
-run/main_scene="uid://bxopteykr2dg5"
+run/main_scene="res://scenes/MainMenu.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://icon.svg"
 
