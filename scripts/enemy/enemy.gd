@@ -95,4 +95,5 @@ func take_damage(amount: int) -> void:
 	health_bar.value = health
 	if health <= 0:
 		died.emit()
+		ItemDrop.try_drop(self)
 		queue_free()

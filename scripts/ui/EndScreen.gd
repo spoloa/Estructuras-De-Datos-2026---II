@@ -2,10 +2,7 @@ class_name EndScreen
 extends MenuScreen
 ## Pantalla de fin de partida (derrota o victoria).
 ##
-## Se apila con el ScreenManager, igual que el menú de pausa:
-##   ScreenManager.push_screen(EndScreen.new("GAME OVER"))
-##   ScreenManager.push_screen(EndScreen.new("¡VICTORIA!"))
-## (de eso se encarga GameFlow.gd).
+## Se apila con el ScreenManager, igual que el menú de pausa
 
 ## Escena del menú principal.
 const MENU_SCENE: String = "res://scenes/MainMenu.tscn"

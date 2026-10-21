@@ -4,7 +4,7 @@ extends Resource
 ## El jugador no "sabe" disparar de una forma fija: lee estos datos del arma equipada.
 
 ## Nombre que se muestra en el HUD.
-@export var weapon_name: String = "Pistola"
+@export var weapon_name: String = "Freud Boy"
 ## Daño que hace cada proyectil.
 @export var damage: int = 1
 ## Disparos por segundo (cadencia).

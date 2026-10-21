@@ -1,16 +1,9 @@
 class_name ItemPickup
 extends Area2D
 ## Ítem recolectable en el suelo. Se crea completo desde código (no necesita escena).
-## Por ahora se dibuja como un círculo de color; se puede cambiar por un sprite después.
-##
 ## Tipos:
 ##   HEART  -> círculo rojo con una cruz: cura al jugador (Player.heal).
 ##   WEAPON -> círculo amarillo: agrega un arma al inventario (Player.add_weapon).
-##
-## Uso:
-##   var item := ItemPickup.new()
-##   item.kind = ItemPickup.Kind.HEART
-##   add_child(item)
 
 enum Kind { HEART, WEAPON }
 

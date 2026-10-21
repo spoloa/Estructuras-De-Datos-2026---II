@@ -3,13 +3,10 @@ extends Node
 ## Controla cómo termina la partida:
 ##   - Si el jugador muere        -> pantalla "GAME OVER"
 ##   - Si se completan las oleadas -> pantalla "¡VICTORIA!"
-##
-## Es un nodo suelto dentro de Main.tscn. En el Inspector hay que asignar
-## el Player y el WaveManager.
 
-## Nodo Player (se escucha su señal died).
+## Nodo Player (lee la señal died).
 @export var player: Player
-## Nodo WaveManager (se escucha su señal all_waves_completed).
+## Nodo WaveManager (lee la señal all_waves_completed).
 @export var wave_manager: WaveManager
 ## Segundos de espera antes de mostrar la pantalla final (para ver la muerte/el último enemigo).
 @export var end_delay: float = 1.2

@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_8il7r")
-fire_rate = 0.8
+weapon_name = "Freud Boy"
+fire_rate = 0.3
 bullet_lifetime = 5.0
 metadata/_custom_type_script = "uid://bvw8flucf2bag"

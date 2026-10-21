@@ -1,9 +1,6 @@
 class_name ItemDrop
 extends RefCounted
 ## Ayudante estático: decide si un enemigo suelta un ítem al morir.
-##
-## Uso (en el script del enemigo, justo antes de queue_free()):
-##   ItemDrop.try_drop(self)
 
 ## Probabilidad de soltar un arma nueva (0.0 a 1.0).
 const WEAPON_CHANCE: float = 0.10

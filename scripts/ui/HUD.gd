@@ -1,16 +1,9 @@
 extends Label
 ## HUD del juego: muestra la vida, el arma equipada y la oleada actual.
-##
-## Reemplaza al HUD de prueba. Sigue siendo un Label (el mismo nodo de Main.tscn),
-## solo que ahora también escucha al WaveManager.
-##
-## En el Inspector hay que asignar:
-##   - player:        el nodo Player
-##   - wave_manager:  el nodo WaveManager
 
-## Nodo Player (de él se lee la vida y el arma).
+## Nodo Player (lee la vida y el arma).
 @export var player: Player
-## Nodo WaveManager (de él se lee la oleada actual).
+## Nodo WaveManager (lee la oleada actual).
 @export var wave_manager: WaveManager
 ## Tamaño de la letra.
 @export var font_size: int = 24
@@ -40,7 +33,7 @@ func _ready() -> void:
 	else:
 		wave_manager.wave_started.connect(_on_wave_started)
 		wave_manager.all_waves_completed.connect(_on_all_waves_completed)
-		_wave_text = "Oleada: preparándose..."
+		_wave_text = "Oleada: Preparándose..."
 	_refresh()
 
 
