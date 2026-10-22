@@ -160,7 +160,6 @@ El proyecto incluye un script de pruebas automáticas de las estructuras: res://
 
 - **Documentación en el código:** cada estructura y cada clase del juego tiene comentarios `##` que se ven en la ayuda de Godot.
 - **Manual de usuario:** [manual_usuario.md](manual_usuario.md)
-- **Documento explicativo del proyecto:**
 
 ---
 
