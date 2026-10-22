@@ -49,15 +49,7 @@ En la página del repositorio haz clic en `Code → Download ZIP`, descomprime l
 
 > Las instrucciones de juego (controles, enemigos, objetos) están en el [manual de usuario](manual_usuario.md).
 
-### Controles
 
-| Acción | Control |
-|---|---|
-| Moverse | WASD |
-| Apuntar | Mouse |
-| Disparar | clic izquierdo |
-| Cambiar de arma | Q |
-| Pausa / volver al menú anterior | Esc |
 
 ---
 
