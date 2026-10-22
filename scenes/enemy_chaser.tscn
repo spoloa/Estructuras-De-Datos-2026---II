@@ -1,17 +1,119 @@
 [gd_scene format=3 uid="uid://djv0erbfixs6f"]
 
 [ext_resource type="Script" uid="uid://cwgvxhx8w1c5m" path="res://scripts/enemy/enemy_chaser.gd" id="1_x7y0m"]
-[ext_resource type="Texture2D" uid="uid://crwhojaxh8x5w" path="res://icon.svg" id="2_wuvmb"]
+[ext_resource type="Texture2D" uid="uid://b5ttr7bq8mj8o" path="res://animations/Costeño/New Piskel (5).png" id="2_x7y0m"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wuvmb"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(0, 0, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3ddd7"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(1792, 0, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xdwg6"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(3584, 0, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4ifjj"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(5376, 0, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_s6v6k"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(0, 1792, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dqufy"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(1792, 1792, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ftubw"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(3584, 1792, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sfio7"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(5376, 1792, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cfmhr"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(0, 3584, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_gr15d"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(1792, 3584, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_k8rl0"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(3584, 3584, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vwss3"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(5376, 3584, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jnqnd"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(0, 5376, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xeqbd"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(1792, 5376, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_setkd"]
+atlas = ExtResource("2_x7y0m")
+region = Rect2(3584, 5376, 1792, 1792)
 
 [sub_resource type="SpriteFrames" id="SpriteFrames_60oq5"]
 animations = [{
 "frames": [{
 "duration": 1.0,
-"texture": ExtResource("2_wuvmb")
+"texture": SubResource("AtlasTexture_wuvmb")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3ddd7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xdwg6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4ifjj")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_s6v6k")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dqufy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ftubw")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_sfio7")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_cfmhr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_gr15d")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_k8rl0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vwss3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jnqnd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xeqbd")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_setkd")
 }],
 "loop": 1,
 "name": &"default",
-"speed": 5.0
+"speed": 12.0
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_frmjw"]
@@ -31,7 +133,10 @@ max_health = 20
 move_speed = 225.0
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=774705752]
+scale = Vector2(0.1, 0.1)
 sprite_frames = SubResource("SpriteFrames_60oq5")
+autoplay = "default"
+frame_progress = 0.35139564
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1506181367]
 scale = Vector2(7, 7)
@@ -50,5 +155,6 @@ scale = Vector2(10, 10)
 shape = SubResource("CircleShape2D_df6aj")
 
 [node name="HealthBar" type="ProgressBar" parent="." unique_id=549016669]
+offset_top = -95.0
 offset_right = 4.0
-offset_bottom = 27.0
+offset_bottom = -68.0

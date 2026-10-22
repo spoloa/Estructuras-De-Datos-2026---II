@@ -85,11 +85,10 @@ position = Vector2(-1641, -683)
 script = ExtResource("7_nxtc6")
 player = NodePath("../Player")
 wave_manager = NodePath("../WaveManager")
-end_delay = 2.0
+end_delay = 1.5
 
 [node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1281693585]
 stream = ExtResource("10_lhr70")
 volume_db = 1.793
-pitch_scale = 0.9
 autoplay = true
 parameters/looping = true

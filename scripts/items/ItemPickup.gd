@@ -17,9 +17,13 @@ enum Kind { CONSUMABLE, WEAPON }
 ## Textura del arma en el suelo (ajusta la ruta a tu PNG).
 const WEAPON_TEXTURE: Texture2D = preload("res://assets/items/escopeta.png")
 ## Radio de colisión del ítem en píxeles.
-const RADIUS: float = 50.0
-## Tamaño con el que se muestra el ítem en pantalla (lado más grande, en píxeles).
-const DISPLAY_SIZE: float = 100.0
+const RADIUS: float = 45.0
+## Tamaño en el suelo de las armas (lado más grande, en píxeles).
+const WEAPON_SIZE: float = 150.0
+## Tamaño en el suelo de los objetos (corazón, bomba). Su imagen está recortada a su
+## contenido, así que se ve más grande que el arma con el mismo número: por eso es menor.
+## Si todavía se ven grandes, baja este número; si se ven chicos, súbelo.
+const CONSUMABLE_SIZE: float = 60.0
 
 
 func _ready() -> void:
@@ -33,7 +37,7 @@ func _ready() -> void:
 	match kind:
 		Kind.CONSUMABLE:
 			if consumable != null:
-				sprite.texture = consumable.icon
+				sprite.texture = consumable.get_icon()
 		Kind.WEAPON:
 			# Cada arma puede traer su propia imagen (WeaponData.icon).
 			if weapon != null and weapon.icon != null:
@@ -41,8 +45,9 @@ func _ready() -> void:
 			else:
 				sprite.texture = WEAPON_TEXTURE
 	if sprite.texture != null:
+		var target_size: float = CONSUMABLE_SIZE if kind == Kind.CONSUMABLE else WEAPON_SIZE
 		var tex_size: Vector2 = sprite.texture.get_size()
-		var factor: float = DISPLAY_SIZE / maxf(tex_size.x, tex_size.y)
+		var factor: float = target_size / maxf(tex_size.x, tex_size.y)
 		sprite.scale = Vector2(factor, factor)
 	add_child(sprite)
 

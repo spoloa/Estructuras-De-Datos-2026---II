@@ -11,7 +11,7 @@ extends MenuScreen
 ## Escena del juego. Cambiar aquí si el nivel principal se mueve o se renombra.
 const GAME_SCENE: String = "res://scenes/Main.tscn"
 
-const CONTROLS_TEXT: String = "Mover: W A S D\nDisparar: clic izquierdo (hacia el mouse)\nCambiar arma: Q\nPausa / volver atrás: Esc"
+const CONTROLS_TEXT: String = "Mover: W A S D\nDisparar: clic izquierdo (hacia el mouse)\nUsar objeto: clic derecho (hacia el mouse)\nCambiar arma: Q\nCambiar objeto: E\nPausa / volver atrás: Esc"
 
 var _controls_label: Label
 

@@ -104,8 +104,8 @@ gizmo_extents = 15.0
 [node name="ShootCooldown" type="Timer" parent="." unique_id=1572222633]
 
 [node name="HealthBar" type="ProgressBar" parent="." unique_id=23965081]
-offset_top = -2.7272725
+offset_top = -77.27272
 offset_right = 4.0
-offset_bottom = 24.272728
+offset_bottom = -50.27272
 scale = Vector2(1.1, 1.1)
 metadata/_edit_use_anchors_ = true

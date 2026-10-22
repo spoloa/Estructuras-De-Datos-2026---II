@@ -10,16 +10,16 @@ extends Node2D
 const FLY_ANIMATIONS: Array[String] = ["fly", "throw", "idle", "default", "bomb"]
 const EXPLODE_ANIMATION: String = "explode"
 ## Duración mínima del destello de la explosión (segundos).
-const MIN_BLAST_TIME: float = 0.5
+const MIN_BLAST_TIME: float = 0.35
 ## La imagen de la explosión se escala a (radio x 2 x este factor) píxeles.
-const EXPLOSION_FIT: float = 1.1
+const EXPLOSION_FIT: float = 2.3
 
 ## Tamaño en pantalla (px) de la celda de la bomba en vuelo.
 ## El dibujo ocupa ~la mitad de la celda, así que 80 deja la bomba de ~36 px.
-@export var fly_display_size: float = 85.0
+@export var fly_display_size: float = 80.0
 
 var _damage: int = 1
-var _radius: float = 100.0
+var _radius: float = 120.0
 var _thrower: Node = null
 var _exploded: bool = false
 ## Intensidad del destello circular (1 = recién explotó, 0 = apagado).
@@ -80,7 +80,7 @@ func _explode() -> void:
 	var blast_time: float = MIN_BLAST_TIME
 	if sprite != null and sprite.sprite_frames != null and sprite.sprite_frames.has_animation(EXPLODE_ANIMATION):
 		var frames: SpriteFrames = sprite.sprite_frames
-		_fit_sprite(EXPLODE_ANIMATION, _radius * 2.0 * EXPLOSION_FIT)
+		_fit_sprite(EXPLODE_ANIMATION, _radius * 1 * EXPLOSION_FIT)
 		sprite.play(EXPLODE_ANIMATION)
 		var anim_time: float = frames.get_frame_count(EXPLODE_ANIMATION) / maxf(frames.get_animation_speed(EXPLODE_ANIMATION), 1.0)
 		blast_time = maxf(blast_time, anim_time)
@@ -103,8 +103,12 @@ func _damage_area() -> void:
 	query.collide_with_areas = false
 
 	var hits: Array[Dictionary] = get_world_2d().direct_space_state.intersect_shape(query, 64)
+	var already_hit: Dictionary = {}  # un cuerpo con varias colisiones solo recibe el daño una vez
 	for hit in hits:
 		var target: Object = hit.collider
+		if already_hit.has(target):
+			continue
+		already_hit[target] = true
 		if target == _thrower or target is Player:
 			continue  # la bomba no daña al jugador
 		if target != null and target.has_method("take_damage"):

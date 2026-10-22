@@ -11,7 +11,7 @@ const HEART_CHANCE: float = 0.25
 ## Arma que se puede encontrar en el suelo.
 const DROP_WEAPON: WeaponData = preload("res://resources/weapons/Escopeta.tres")
 ## Bomba que se puede encontrar en el suelo.
-const DROP_BOMB: WeaponData = preload("res://resources/weapons/Bomba.tres")
+const DROP_BOMB: ConsumableData = preload("res://resources/consumables/BombaObjeto.tres")
 ## Objeto usable que se puede encontrar en el suelo (corazón con cooldown).
 const DROP_CONSUMABLE: ConsumableData = preload("res://resources/consumables/Corazon.tres")
 
@@ -24,8 +24,8 @@ static func try_drop(source: Node2D) -> void:
 		item.kind = ItemPickup.Kind.WEAPON
 		item.weapon = DROP_WEAPON
 	elif roll < WEAPON_CHANCE + BOMB_CHANCE:
-		item.kind = ItemPickup.Kind.WEAPON
-		item.weapon = DROP_BOMB
+		item.kind = ItemPickup.Kind.CONSUMABLE
+		item.consumable = DROP_BOMB
 	elif roll < WEAPON_CHANCE + BOMB_CHANCE + HEART_CHANCE:
 		item.kind = ItemPickup.Kind.CONSUMABLE
 		item.consumable = DROP_CONSUMABLE

@@ -9,7 +9,7 @@ extends Label
 const GOLD: Color = Color(0.85, 0.68, 0.30)
 const GOLD_DIM: Color = Color(0.62, 0.50, 0.24)
 const CREAM: Color = Color(0.95, 0.90, 0.75)
-const PANEL_BG: Color = Color(0.07, 0.06, 0.08, 0.92)
+const PANEL_BG: Color = Color(0.07, 0.06, 0.08, 0.35)  # el último número es la opacidad (0 = invisible, 1 = sólido)
 const PIP_OFF: Color = Color(0.25, 0.22, 0.20)
 const HEALTH_BG: Color = Color(0.20, 0.04, 0.06)
 const HEALTH_FILL: Color = Color(0.80, 0.12, 0.16)
@@ -19,6 +19,8 @@ const HEALTH_FILL_DARK: Color = Color(0.50, 0.06, 0.09)
 const MARGIN: int = 16
 ## Ancho de la columna izquierda (barra de vida y arma).
 const COLUMN_WIDTH: float = 180.0
+## Tamaño del icono del objeto (corazón, bomba...) en píxeles.
+const ICON_SIZE: float = 45.0
 
 var _health_bar: ProgressBar
 var _health_label: Label
@@ -28,6 +30,7 @@ var _item_icon: TextureRect
 var _item_name: Label
 var _item_bar: ProgressBar
 var _item_status: Label
+var _item_pips: HBoxContainer
 var _item: ConsumableData  # objeto usable que se muestra (null = casilla vacía)
 var _wave_value: Label
 var _banner: Label
@@ -106,7 +109,7 @@ func _build_health(parent: Control) -> void:
 	var heart := HeartIcon.new()
 	heart.custom_minimum_size = Vector2(22, 22)
 	heart.size = Vector2(22, 22)
-	heart.position = Vector2(8, 4)
+	heart.position = Vector2(8, 5)
 	_health_bar.add_child(heart)
 
 	# Texto centrado dentro de la barra.
@@ -161,14 +164,20 @@ func _build_item(parent: Control) -> void:
 	col.add_theme_constant_override("separation", 4)
 	frame.add_child(col)
 
-	col.add_child(_make_caption("OBJETO"))
+	var header := HBoxContainer.new()
+	col.add_child(header)
+	header.add_child(_make_caption("OBJETO"))
+	var header_spacer := Control.new()
+	header_spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(header_spacer)
+	header.add_child(_make_caption("[E] CAMBIAR"))
 
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	col.add_child(row)
 
 	_item_icon = TextureRect.new()
-	_item_icon.custom_minimum_size = Vector2(50, 50)
+	_item_icon.custom_minimum_size = Vector2(ICON_SIZE, ICON_SIZE)
 	_item_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_item_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	row.add_child(_item_icon)
@@ -199,13 +208,20 @@ func _build_item(parent: Control) -> void:
 	info.add_child(_item_bar)
 
 	_item_status = _make_caption("")
+	_item_status.add_theme_font_size_override("font_size", 14)
 	info.add_child(_item_status)
+
+	# Una casilla por objeto del inventario (dorada = seleccionado).
+	_item_pips = HBoxContainer.new()
+	_item_pips.add_theme_constant_override("separation", 4)
+	info.add_child(_item_pips)
 
 	_refresh_item()
 
 
 ## Actualiza icono, nombre y estado del panel de objeto.
 func _refresh_item() -> void:
+	_rebuild_item_pips()
 	if _item == null:
 		_item_icon.texture = null
 		_item_name.text = "VACÍO"
@@ -213,10 +229,28 @@ func _refresh_item() -> void:
 		_item_bar.value = 0.0
 		_item_status.text = "---"
 		return
-	_item_icon.texture = _item.icon
+	_item_icon.texture = _item.get_icon()
 	_item_name.text = _item.display_name.to_upper()
 	_item_name.modulate = Color.WHITE
 	_update_item_cooldown()
+
+
+## Dibuja una casilla por objeto del inventario (dorada = el seleccionado).
+func _rebuild_item_pips() -> void:
+	if _item_pips == null:
+		return
+	for pip in _item_pips.get_children():
+		_item_pips.remove_child(pip)
+		pip.queue_free()
+	if player == null:
+		return
+	var selected: int = player.consumables.find(_item)
+	for i in player.consumables.size():
+		var pip := ColorRect.new()
+		pip.custom_minimum_size = Vector2(14, 14)
+		pip.color = GOLD if i == selected else PIP_OFF
+		pip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_item_pips.add_child(pip)
 
 
 ## Barra y texto de recarga (se llama cada frame desde _process).
@@ -230,7 +264,7 @@ func _update_item_cooldown() -> void:
 		_item_icon.modulate = Color(0.45, 0.45, 0.45)  # apagado mientras recarga
 	else:
 		_item_bar.value = 1.0
-		_item_status.text = "LISTO [E]"
+		_item_status.text = "LISTO"
 		_item_icon.modulate = Color.WHITE
 
 
@@ -311,6 +345,9 @@ func _make_theme() -> Theme:
 	var t := Theme.new()
 	t.default_font = font
 	t.default_font_size = 18
+	# Contorno oscuro en todos los textos: se leen bien aunque el panel sea transparente.
+	t.set_color("font_outline_color", "Label", Color(0, 0, 0, 0.9))
+	t.set_constant("outline_size", "Label", 4)
 	return t
 
 
@@ -333,9 +370,9 @@ func _connect_signals() -> void:
 		player.health_changed.connect(_on_health_changed)
 		player.weapon_changed.connect(_on_weapon_changed)
 		player.consumable_added.connect(_on_consumable_added)
-		if not player.consumables.is_empty():
-			_item = player.consumables[0]
-			_refresh_item()
+		player.consumable_selected.connect(_on_consumable_selected)
+		_item = player.get_selected_consumable()
+		_refresh_item()
 		# El Player ya se inicializó antes que el HUD, así que leemos su estado actual.
 		_on_health_changed(player.health, player.max_health)
 		_on_weapon_changed(player.weapon, 0, player.inventory.size())
@@ -380,10 +417,14 @@ func _on_weapon_changed(weapon: WeaponData, slot: int, total: int) -> void:
 
 ## Al recoger un objeto usable se muestra en el panel y se avisa con el banner.
 func _on_consumable_added(data: ConsumableData) -> void:
-	if _item == null:
-		_item = data
-		_refresh_item()
-	_show_banner("¡%s! [E] PARA USAR" % data.display_name.to_upper())
+	_refresh_item()
+	_show_banner("¡%s!  [E] CAMBIAR · [CLIC DER.] USAR" % data.display_name.to_upper())
+
+
+## Al cambiar de objeto con la tecla E se actualiza el panel.
+func _on_consumable_selected(data: ConsumableData) -> void:
+	_item = data
+	_refresh_item()
 
 
 ## Cuando empieza una oleada, el WaveManager ya sacó esa oleada de su cola (Queue),

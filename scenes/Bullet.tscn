@@ -1,23 +1,52 @@
 [gd_scene format=3 uid="uid://dep7af4k40bxi"]
 
 [ext_resource type="Script" uid="uid://beo25ha5cea0d" path="res://scripts/weapons/Bullet.gd" id="1_p1sfj"]
-[ext_resource type="Texture2D" uid="uid://crwhojaxh8x5w" path="res://icon.svg" id="2_4utqk"]
+[ext_resource type="Texture2D" uid="uid://cuklutf2jtjwc" path="res://animations/Balas/New Piskel (6).png" id="2_p1sfj"]
 
-[sub_resource type="CircleShape2D" id="CircleShape2D_1yi1s"]
-radius = 8.456133
+[sub_resource type="AtlasTexture" id="AtlasTexture_4utqk"]
+atlas = ExtResource("2_p1sfj")
+region = Rect2(0, 0, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_51h0o"]
+atlas = ExtResource("2_p1sfj")
+region = Rect2(1792, 0, 1792, 1792)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4m4t0"]
+atlas = ExtResource("2_p1sfj")
+region = Rect2(0, 1792, 1792, 1792)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_lok1f"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4utqk")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_51h0o")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_4m4t0")
+}],
+"loop": 1,
+"name": &"default",
+"speed": 3.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rkej8"]
+size = Vector2(24.333332, 13.416668)
 
 [node name="Bullet" type="Area2D" unique_id=1662440076]
 scale = Vector2(1.5, 1.5)
 collision_mask = 3
 script = ExtResource("1_p1sfj")
 
-[node name="Sprite2D" type="Sprite2D" parent="." unique_id=923111986]
-position = Vector2(-1.9073486e-06, -9.536743e-07)
-rotation = 0.005652986
-scale = Vector2(0.134, 0.15)
-texture = ExtResource("2_4utqk")
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=929708463]
+position = Vector2(4.666668, 10.666667)
+scale = Vector2(0.1, 0.07)
+sprite_frames = SubResource("SpriteFrames_lok1f")
+frame_progress = 0.22603264
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1790125266]
-position = Vector2(0, 1.1920929e-07)
+position = Vector2(-9.333334, -6.666667)
 scale = Vector2(1.5, 1.5)
-shape = SubResource("CircleShape2D_1yi1s")
+shape = SubResource("RectangleShape2D_rkej8")

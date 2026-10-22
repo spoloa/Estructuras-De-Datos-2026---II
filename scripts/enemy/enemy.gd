@@ -13,6 +13,7 @@ signal died
 @export var chase_forever: bool = true
 
 var health: int
+var _dead := false  # true en cuanto muere (evita morir dos veces)
 var player: Player = null
 var can_shoot := true
 var _aiming := false
@@ -26,6 +27,7 @@ var _aiming := false
 func _ready() -> void:
 	add_to_group("enemy")
 	health = max_health
+	EnemyHealthBar.style(health_bar)
 	health_bar.max_value = max_health
 	health_bar.value = health
 	$DetectionArea.body_entered.connect(_on_body_entered)
@@ -91,9 +93,13 @@ func _shoot_at_player() -> void:
 
 
 func take_damage(amount: int) -> void:
+	if _dead:
+		return  # ya murió: queue_free() no borra al instante, así que sin esto
+		# varios golpes en el mismo frame emitirían 'died' y soltarían ítems varias veces
 	health -= amount
 	health_bar.value = health
 	if health <= 0:
+		_dead = true
 		died.emit()
 		ItemDrop.try_drop(self)
 		queue_free()

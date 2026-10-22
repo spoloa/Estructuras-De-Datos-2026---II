@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="ConsumableData" format=3 uid="uid://24kqqlacwsqs"]
+
+[ext_resource type="Script" uid="uid://cpim8jrgqdxo" path="res://scripts/ConsumableData.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://k5a7fyqarcws" path="res://scenes/Bomb.tscn" id="2_bomb"]
+[ext_resource type="Texture2D" uid="uid://u1spx53kt4sh" path="res://animations/Bomba/New Piskel (3).png" id="2_i5b4g"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p26nh"]
+atlas = ExtResource("2_i5b4g")
+region = Rect2(715.81854, 0, 371.62482, 395.2032)
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Bomba"
+icon = SubResource("AtlasTexture_p26nh")
+effect = 1
+cooldown = 15.0
+damage = 15
+blast_radius = 200.0
+bomb_scene = ExtResource("2_bomb")
