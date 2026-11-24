@@ -3,7 +3,7 @@ extends RefCounted
 ## Ayudante estático: decide si un enemigo suelta un ítem al morir.
 
 ## Probabilidad de soltar un arma nueva (0.0 a 1.0). Se elige al azar entre DROP_WEAPONS.
-const WEAPON_CHANCE: float = 0.25
+const WEAPON_CHANCE: float = 0.15
 ## Probabilidad de soltar una bomba (0.0 a 1.0).
 const BOMB_CHANCE: float = 0.15
 ## Probabilidad de soltar un dash (0.0 a 1.0).

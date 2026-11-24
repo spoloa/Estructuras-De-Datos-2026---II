@@ -31,7 +31,7 @@ const CONSUMABLE_SIZE: float = 65.0
 ## Cambia la clave según la propiedad de nombre que tenga tu WeaponData (ej. "weapon_name", "name" o "id").
 const WEAPON_SIZE_MULTIPLIERS: Dictionary = {
 	"bate": 0.55,
-	"bazuca": 0.65,
+	"bazuca": 0.8,
 	"escopeta": 1.0,
 }
 
