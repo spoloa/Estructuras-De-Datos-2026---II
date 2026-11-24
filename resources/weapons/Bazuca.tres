@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://dmi6h6fhme1g7"]
+
+[ext_resource type="Script" uid="uid://bvw8flucf2bag" path="res://scripts/weapons/WeaponData.gd" id="1_weapon"]
+[ext_resource type="PackedScene" uid="uid://cbmq56gfx4m7j" path="res://scenes/Rocket.tscn" id="2_rocket"]
+[ext_resource type="Texture2D" uid="uid://c8a2t51wasg1p" path="res://assets/items/bazuca.png" id="3_icon"]
+
+[resource]
+script = ExtResource("1_weapon")
+weapon_name = "Bazuca"
+damage = 10
+fire_rate = 0.4
+bullet_speed = 550.0
+bullet_lifetime = 2.6
+icon = ExtResource("3_icon")
+rocket_scene = ExtResource("2_rocket")
+blast_radius = 200.0

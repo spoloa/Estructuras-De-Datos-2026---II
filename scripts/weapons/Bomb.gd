@@ -44,6 +44,14 @@ func setup(target: Vector2, speed: float, damage: int, radius: float, thrower: N
 	tween.tween_callback(_explode)
 
 
+## Explota en el sitio, sin volar antes (lo usa el cohete de la bazuca al impactar).
+func detonate(damage: int, radius: float, thrower: Node) -> void:
+	_damage = damage
+	_radius = radius
+	_thrower = thrower
+	_explode()
+
+
 func _play_fly_animation() -> void:
 	if sprite == null or sprite.sprite_frames == null:
 		return

@@ -12,6 +12,10 @@ signal consumable_added(data: ConsumableData)
 signal consumable_used(data: ConsumableData)
 ## Se emite al cambiar el objeto seleccionado (tecla switch_item).
 signal consumable_selected(data: ConsumableData)
+## Se emite al conseguir una habilidad (por ejemplo, al recoger el dash del suelo).
+signal ability_changed(data: AbilityData)
+## Se emite cuando se usa la habilidad con éxito.
+signal ability_used(data: AbilityData)
 ## Se emite cuando la vida llega a 0.
 signal died
 
@@ -23,6 +27,10 @@ signal died
 @export var bullet_scene: PackedScene
 ## Armas con las que empieza el jugador (se cargan al inventario en _ready).
 @export var starting_weapons: Array[WeaponData] = []
+## Objetos con los que empieza el jugador (opcional).
+@export var starting_consumables: Array[ConsumableData] = []
+## Habilidad con la que empieza el jugador (opcional, por ejemplo Dash.tres; sirve para probar).
+@export var starting_ability: AbilityData
 
 var health: int
 var weapon: WeaponData  # arma equipada actualmente
@@ -38,19 +46,43 @@ var _cooldown: float = 0.0  # segundos que faltan para poder volver a disparar
 ## Segundos que le faltan a cada objeto usable para poder usarse otra vez.
 var _item_cooldowns: Dictionary = {}
 
+## Habilidad que tiene el jugador (null = ninguna). Se usa con la acción "dash" (Shift izquierdo).
+var ability: AbilityData = null
+## Segundos que le faltan a la habilidad para poder usarse otra vez.
+var _ability_cooldown: float = 0.0
+
+## Nombre de la acción de teclado de la habilidad.
+const ABILITY_ACTION: String = "dash"
+## Opacidad del jugador mientras hace el dash.
+const DASH_ALPHA: float = 0.45
+## Segundos que le faltan al dash actual (0 = no está haciendo dash).
+var _dash_time_left: float = 0.0
+var _dash_velocity: Vector2 = Vector2.ZERO
+var _dash_invulnerable: bool = false
+
 @onready var sprite: AnimatedSprite2D = $AnimatedSprite2D
 
 func _ready() -> void:
+	add_to_group("player")  # para que los drops sepan qué armas y habilidades ya tienes
+	_ensure_ability_action()
 	health = max_health
 	for w in starting_weapons:
 		inventory.add(w)
 	equip_weapon(0)
+	for c in starting_consumables:
+		add_consumable(c)
+	if starting_ability != null:
+		add_ability(starting_ability)
 
 
 func _physics_process(delta: float) -> void:
-	_move()
+	if _dash_time_left > 0.0:
+		_dash_step(delta)  # durante el dash no se controla el movimiento
+	else:
+		_move()
 	_cooldown = maxf(0.0, _cooldown - delta)
 	_update_item_cooldowns(delta)
+	_ability_cooldown = maxf(0.0, _ability_cooldown - delta)
 	if Input.is_action_pressed("shoot") and _cooldown <= 0.0:
 		_shoot()
 
@@ -62,6 +94,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		select_next_consumable()
 	elif event.is_action_pressed("use_item"):
 		use_selected_consumable()
+	elif event.is_action_pressed(ABILITY_ACTION):
+		use_ability()
 
 
 ## Recupera vida sin pasar del máximo. Lo usarán ítems como el corazón.
@@ -134,6 +168,46 @@ func get_item_cooldown_left(data: ConsumableData) -> float:
 	return _item_cooldowns.get(data, 0.0)
 
 
+## Consigue una habilidad (la reemplaza si ya tenías otra distinta).
+func add_ability(data: AbilityData) -> void:
+	if data == null or ability == data:
+		return
+	ability = data
+	_ability_cooldown = 0.0
+	ability_changed.emit(data)
+
+
+## Usa la habilidad (Shift izquierdo). Devuelve true si se usó.
+## Su cooldown es propio: no afecta a las armas ni a los objetos.
+func use_ability() -> bool:
+	if ability == null or health <= 0 or _ability_cooldown > 0.0:
+		return false
+	match ability.kind:
+		AbilityData.Kind.DASH:
+			if not _start_dash(ability):
+				return false
+	_ability_cooldown = ability.cooldown
+	ability_used.emit(ability)
+	return true
+
+
+## Segundos restantes de cooldown de la habilidad (útil para el HUD).
+func get_ability_cooldown_left() -> float:
+	return _ability_cooldown
+
+
+## Crea la acción de teclado de la habilidad (Shift izquierdo) si no existe en el Input Map.
+## Así funciona sin tocar project.godot; si ya la creaste a mano, se respeta la tuya.
+func _ensure_ability_action() -> void:
+	if InputMap.has_action(ABILITY_ACTION):
+		return
+	InputMap.add_action(ABILITY_ACTION)
+	var key := InputEventKey.new()
+	key.physical_keycode = KEY_SHIFT
+	key.location = KEY_LOCATION_LEFT  # solo el Shift izquierdo
+	InputMap.action_add_event(ABILITY_ACTION, key)
+
+
 func _update_item_cooldowns(delta: float) -> void:
 	for data in _item_cooldowns.keys():
 		_item_cooldowns[data] = maxf(0.0, _item_cooldowns[data] - delta)
@@ -152,6 +226,8 @@ func equip_weapon(slot: int) -> void:
 func take_damage(amount: int) -> void:
 	if health <= 0:
 		return
+	if _dash_invulnerable and _dash_time_left > 0.0:
+		return  # el dash esquiva el daño mientras dura
 	health = maxi(0, health - amount)
 	health_changed.emit(health, max_health)
 	if health == 0:
@@ -188,15 +264,99 @@ func _throw_bomb(data: ConsumableData) -> bool:
 	return true
 
 
-## Dispara según los datos del arma equipada.
+## Impulso rápido (dash) en la dirección en que te mueves; si estás quieto, hacia el mouse.
+func _start_dash(data: AbilityData) -> bool:
+	if _dash_time_left > 0.0:
+		return false  # ya está en un dash
+	var dir := Input.get_vector("move_left", "move_right", "move_up", "move_down")
+	if dir == Vector2.ZERO:
+		dir = (get_global_mouse_position() - global_position).normalized()
+	if dir == Vector2.ZERO:
+		return false
+	var duration: float = maxf(data.dash_duration, 0.01)
+	_dash_velocity = dir.normalized() * (data.dash_distance / duration)
+	_dash_time_left = duration
+	_dash_invulnerable = data.dash_invulnerable
+	if sprite != null:
+		sprite.modulate.a = DASH_ALPHA
+	return true
+
+
+## Avanza el dash un frame. Al terminar, el jugador vuelve a ser controlable.
+func _dash_step(delta: float) -> void:
+	_dash_time_left -= delta
+	velocity = _dash_velocity
+	move_and_slide()
+	if _dash_time_left <= 0.0:
+		_dash_time_left = 0.0
+		_dash_invulnerable = false
+		velocity = Vector2.ZERO
+		if sprite != null:
+			sprite.modulate.a = 1.0
+
+
+## Ataca según los datos del arma equipada (disparo o golpe cuerpo a cuerpo).
 func _shoot() -> void:
-	if weapon == null or bullet_scene == null:
+	if weapon == null:
 		return
 	_cooldown = 1.0 / weapon.fire_rate
+	if weapon.attack_type == WeaponData.AttackType.MELEE:
+		_melee_attack()
+	else:
+		_fire_projectiles()
+
+
+## Dispara balas (pistola, escopeta) o un cohete (bazuca).
+func _fire_projectiles() -> void:
+	if weapon.rocket_scene == null and bullet_scene == null:
+		return
 	var base_dir := (get_global_mouse_position() - global_position).normalized()
 	for i in weapon.bullets_per_shot:
 		var angle := deg_to_rad(randf_range(-weapon.spread_degrees, weapon.spread_degrees))
-		var bullet: Bullet = bullet_scene.instantiate()
-		get_tree().current_scene.add_child(bullet)
-		bullet.global_position = global_position
-		bullet.setup(base_dir.rotated(angle), weapon.bullet_speed, weapon.damage, weapon.bullet_lifetime, self)
+		var dir := base_dir.rotated(angle)
+		if weapon.rocket_scene != null:
+			var rocket: Rocket = weapon.rocket_scene.instantiate()
+			get_tree().current_scene.add_child(rocket)
+			rocket.global_position = global_position
+			rocket.setup(dir, weapon.bullet_speed, weapon.damage, weapon.bullet_lifetime, self, weapon.blast_radius)
+		else:
+			var bullet: Bullet = bullet_scene.instantiate()
+			get_tree().current_scene.add_child(bullet)
+			bullet.global_position = global_position
+			bullet.setup(dir, weapon.bullet_speed, weapon.damage, weapon.bullet_lifetime, self)
+
+
+## Golpe cuerpo a cuerpo: daña a todo lo que esté dentro del alcance y del arco hacia el mouse.
+func _melee_attack() -> void:
+	var aim := (get_global_mouse_position() - global_position).normalized()
+	if aim == Vector2.ZERO:
+		aim = Vector2.RIGHT
+
+	# Efecto visual del golpe.
+	var swing := MeleeSwing.new()
+	add_child(swing)
+	swing.play(aim, weapon.melee_range, weapon.melee_arc_degrees)
+
+	# Todo lo que toque el círculo de alcance...
+	var shape := CircleShape2D.new()
+	shape.radius = weapon.melee_range
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = shape
+	query.transform = Transform2D(0.0, global_position)
+	query.collide_with_bodies = true
+	query.collide_with_areas = false
+	var hits: Array[Dictionary] = get_world_2d().direct_space_state.intersect_shape(query, 64)
+
+	# ...y que además esté dentro del arco, recibe el daño (una sola vez por cuerpo).
+	var half_arc: float = deg_to_rad(weapon.melee_arc_degrees) / 2.0
+	var already_hit: Dictionary = {}
+	for hit in hits:
+		var target: Object = hit.collider
+		if target == self or target is Player or already_hit.has(target):
+			continue
+		already_hit[target] = true
+		if not target.has_method("take_damage"):
+			continue
+		var to_target: Vector2 = (target as Node2D).global_position - global_position
+		if to_target == Vector2.ZERO or absf(aim.angle_to(to_target)) <= half_arc:
+			target.take_damage(weapon.damage)

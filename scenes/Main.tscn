@@ -36,21 +36,21 @@ texture = ExtResource("1_nxtc6")
 [node name="Paredes" type="StaticBody2D" parent="." unique_id=523021359]
 
 [node name="Arriba" type="CollisionShape2D" parent="Paredes" unique_id=816674834]
-position = Vector2(156, -803)
+position = Vector2(156, -808)
 shape = SubResource("RectangleShape2D_rkej8")
 
 [node name="Abajo" type="CollisionShape2D" parent="Paredes" unique_id=32326430]
-position = Vector2(186.5, 1440)
+position = Vector2(186.5, 1444)
 scale = Vector2(5, 5)
 shape = SubResource("RectangleShape2D_3kpar")
 
 [node name="Izquierda" type="CollisionShape2D" parent="Paredes" unique_id=693610329]
-position = Vector2(-1835, 257.50006)
+position = Vector2(-1839.0001, 257.50006)
 scale = Vector2(5, 5)
 shape = SubResource("RectangleShape2D_p4qie")
 
 [node name="Derecha" type="CollisionShape2D" parent="Paredes" unique_id=910259104]
-position = Vector2(2144.5, 280.5)
+position = Vector2(2148, 280.00003)
 scale = Vector2(5, 5)
 shape = SubResource("RectangleShape2D_kuu7v")
 

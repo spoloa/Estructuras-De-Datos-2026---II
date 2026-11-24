@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="AbilityData" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/AbilityData.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/dash.png" id="2_icon"]
+
+[resource]
+script = ExtResource("1_script")
+display_name = "Dash"
+icon = ExtResource("2_icon")
+cooldown = 3.5
+dash_distance = 260.0
+dash_duration = 0.16
+dash_invulnerable = true

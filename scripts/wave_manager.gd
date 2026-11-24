@@ -8,8 +8,8 @@ signal all_waves_completed
 @export var shooter_scene: PackedScene
 @export var chaser_scene: PackedScene
 @export var spawn_points: Array[Marker2D] = []
-@export var time_between_waves: float = 3.0
-@export var spawn_interval: float = 1.0
+@export var time_between_waves: float = 3.5
+@export var spawn_interval: float = 1.5
 
 ## Prioridad de aparición por tipo: mayor número = sale antes.
 const PRIORITY := {"chaser": 2, "shooter": 1}
@@ -26,9 +26,9 @@ var _completed: bool = false
 
 func _ready() -> void:
 	# Cada oleada: cuántos enemigos de cada tipo. Edita estos números a gusto.
-	waves.enqueue({"chaser": 2, "shooter": 1})
-	waves.enqueue({"chaser": 3, "shooter": 3})
-	waves.enqueue({"chaser": 4, "shooter": 5})
+	waves.enqueue({"chaser": 3, "shooter": 2})
+	waves.enqueue({"chaser": 4, "shooter": 4})
+	waves.enqueue({"chaser": 6, "shooter": 7})
 	_start_next_wave()
 
 

@@ -154,4 +154,3 @@ El proyecto incluye un script de pruebas automáticas de las estructuras: res://
 - **Manual de usuario:** [manual_usuario.md](manual_usuario.md)
 
 ---
-

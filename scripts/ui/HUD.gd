@@ -19,6 +19,8 @@ const HEALTH_FILL_DARK: Color = Color(0.50, 0.06, 0.09)
 const MARGIN: int = 16
 ## Ancho de la columna izquierda (barra de vida y arma).
 const COLUMN_WIDTH: float = 180.0
+## Tamaño del icono de la habilidad (abajo a la izquierda) en píxeles.
+const ABILITY_ICON_SIZE: float = 40.0
 ## Tamaño del icono del objeto (corazón, bomba...) en píxeles.
 const ICON_SIZE: float = 45.0
 
@@ -32,6 +34,12 @@ var _item_bar: ProgressBar
 var _item_status: Label
 var _item_pips: HBoxContainer
 var _item: ConsumableData  # objeto usable que se muestra (null = casilla vacía)
+var _ability_frame: PanelContainer
+var _ability_icon: TextureRect
+var _ability_name: Label
+var _ability_bar: ProgressBar
+var _ability_status: Label
+var _ability: AbilityData  # habilidad que se muestra (null = el panel está oculto)
 var _wave_value: Label
 var _banner: Label
 var _health_tween: Tween
@@ -69,6 +77,7 @@ func _ready() -> void:
 	_build_health(left)
 	_build_weapon(left)
 	_build_item(left)
+	_build_ability()
 	_build_wave(right)
 	_build_banner()
 	_ignore_mouse(self)  # el HUD nunca debe bloquear clics
@@ -270,6 +279,92 @@ func _update_item_cooldown() -> void:
 
 func _process(_delta: float) -> void:
 	_update_item_cooldown()
+	_update_ability_cooldown()
+
+
+## Habilidad (dash): panel pequeño abajo a la izquierda. Solo se ve cuando el jugador tiene una.
+func _build_ability() -> void:
+	var box := MarginContainer.new()
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	for side in ["left", "top", "right", "bottom"]:
+		box.add_theme_constant_override("margin_" + side, MARGIN)
+	add_child(box)
+
+	_ability_frame = _make_frame()
+	_ability_frame.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN  # pegado a la izquierda
+	_ability_frame.size_flags_vertical = Control.SIZE_SHRINK_END      # pegado abajo
+	_ability_frame.visible = false
+	box.add_child(_ability_frame)
+
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 2)
+	_ability_frame.add_child(col)
+	col.add_child(_make_caption("HABILIDAD"))
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	col.add_child(row)
+
+	_ability_icon = TextureRect.new()
+	_ability_icon.custom_minimum_size = Vector2(ABILITY_ICON_SIZE, ABILITY_ICON_SIZE)
+	_ability_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_ability_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	row.add_child(_ability_icon)
+
+	var info := VBoxContainer.new()
+	info.add_theme_constant_override("separation", 2)
+	info.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_child(info)
+
+	_ability_name = Label.new()
+	_ability_name.add_theme_font_size_override("font_size", 16)
+	_ability_name.add_theme_color_override("font_color", CREAM)
+	info.add_child(_ability_name)
+
+	# Barra de recarga: se va llenando hasta que la habilidad está lista.
+	_ability_bar = ProgressBar.new()
+	_ability_bar.custom_minimum_size = Vector2(0, 6)
+	_ability_bar.show_percentage = false
+	_ability_bar.min_value = 0.0
+	_ability_bar.max_value = 1.0
+	var bar_bg := StyleBoxFlat.new()
+	bar_bg.bg_color = PIP_OFF
+	var bar_fill := StyleBoxFlat.new()
+	bar_fill.bg_color = GOLD
+	_ability_bar.add_theme_stylebox_override("background", bar_bg)
+	_ability_bar.add_theme_stylebox_override("fill", bar_fill)
+	info.add_child(_ability_bar)
+
+	_ability_status = _make_caption("")
+	_ability_status.add_theme_font_size_override("font_size", 12)
+	info.add_child(_ability_status)
+
+
+## Muestra u oculta el panel y actualiza el icono y el nombre de la habilidad.
+func _refresh_ability() -> void:
+	if _ability_frame == null:
+		return
+	_ability_frame.visible = _ability != null
+	if _ability == null:
+		return
+	_ability_icon.texture = _ability.get_icon()
+	_ability_name.text = _ability.display_name.to_upper()
+	_update_ability_cooldown()
+
+
+## Barra y texto de recarga de la habilidad (se llama cada frame desde _process).
+func _update_ability_cooldown() -> void:
+	if _ability == null or player == null:
+		return
+	var left: float = player.get_ability_cooldown_left()
+	if left > 0.0 and _ability.cooldown > 0.0:
+		_ability_bar.value = 1.0 - left / _ability.cooldown
+		_ability_status.text = "%.1fs" % left
+		_ability_icon.modulate = Color(0.45, 0.45, 0.45)  # apagada mientras recarga
+	else:
+		_ability_bar.value = 1.0
+		_ability_status.text = "LISTO [SHIFT]"
+		_ability_icon.modulate = Color.WHITE
 
 
 ## Panel de la oleada actual (esquina superior derecha).
@@ -373,6 +468,9 @@ func _connect_signals() -> void:
 		player.consumable_selected.connect(_on_consumable_selected)
 		_item = player.get_selected_consumable()
 		_refresh_item()
+		player.ability_changed.connect(_on_ability_changed)
+		_ability = player.ability
+		_refresh_ability()
 		# El Player ya se inicializó antes que el HUD, así que leemos su estado actual.
 		_on_health_changed(player.health, player.max_health)
 		_on_weapon_changed(player.weapon, 0, player.inventory.size())
@@ -425,6 +523,14 @@ func _on_consumable_added(data: ConsumableData) -> void:
 func _on_consumable_selected(data: ConsumableData) -> void:
 	_item = data
 	_refresh_item()
+
+
+## Al conseguir una habilidad aparece el panel y se avisa con el banner.
+func _on_ability_changed(data: AbilityData) -> void:
+	_ability = data
+	_refresh_ability()
+	if data != null:
+		_show_banner("¡%s!  [SHIFT] PARA USAR" % data.display_name.to_upper())
 
 
 ## Cuando empieza una oleada, el WaveManager ya sacó esa oleada de su cola (Queue),

@@ -151,5 +151,3 @@ el último momento, una pantalla con tres opciones:
 - Guarda la **bomba** para cuando haya varios enemigos juntos: hace 15 de daño en área.
 - Usa el **corazón** cuando te falte vida; con la vida llena no se puede usar.
 - Los **Tiradores** no pueden dispararte si hay una pared de por medio: úsala de cobertura.
-
-

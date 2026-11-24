@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="WeaponData" format=3 uid="uid://vurj4507yytk"]
+
+[ext_resource type="Texture2D" uid="uid://c4v0hk5ennut6" path="res://assets/items/Bate.png" id="1_i4ffu"]
+[ext_resource type="Script" uid="uid://bvw8flucf2bag" path="res://scripts/weapons/WeaponData.gd" id="1_weapon"]
+
+[resource]
+script = ExtResource("1_weapon")
+weapon_name = "Bate"
+damage = 5
+fire_rate = 1.2
+icon = ExtResource("1_i4ffu")
+attack_type = 1
+melee_range = 250.0
+melee_arc_degrees = 150.0

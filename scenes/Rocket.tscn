@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://cbmq56gfx4m7j"]
+
+[ext_resource type="Script" uid="uid://c60yqrvvmg07k" path="res://scripts/weapons/Rocket.gd" id="1_rocket"]
+[ext_resource type="PackedScene" uid="uid://k5a7fyqarcws" path="res://scenes/Bomb.tscn" id="2_boom"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_rocket"]
+size = Vector2(40, 14)
+
+[node name="Rocket" type="Area2D" unique_id=701790059]
+collision_layer = 0
+collision_mask = 3
+script = ExtResource("1_rocket")
+explosion_scene = ExtResource("2_boom")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1951054445]
+shape = SubResource("RectangleShape2D_rocket")

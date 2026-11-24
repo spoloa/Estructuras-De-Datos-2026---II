@@ -4,8 +4,9 @@ extends Area2D
 ## Tipos:
 ##   CONSUMABLE -> objeto usable con cooldown (ej. corazón): va al inventario de consumibles.
 ##   WEAPON     -> arma: se agrega al inventario de armas (Player.add_weapon).
+##   ABILITY    -> habilidad (ej. dash): se usa con Shift izquierdo (Player.add_ability).
 
-enum Kind { CONSUMABLE, WEAPON }
+enum Kind { CONSUMABLE, WEAPON, ABILITY }
 
 ## Tipo de ítem.
 @export var kind: Kind = Kind.CONSUMABLE
@@ -13,6 +14,8 @@ enum Kind { CONSUMABLE, WEAPON }
 @export var consumable: ConsumableData
 ## Arma que entrega (solo para WEAPON).
 @export var weapon: WeaponData
+## Habilidad que entrega (solo para ABILITY).
+@export var ability: AbilityData
 
 ## Textura del arma en el suelo (ajusta la ruta a tu PNG).
 const WEAPON_TEXTURE: Texture2D = preload("res://assets/items/escopeta.png")
@@ -23,7 +26,14 @@ const WEAPON_SIZE: float = 150.0
 ## Tamaño en el suelo de los objetos (corazón, bomba). Su imagen está recortada a su
 ## contenido, así que se ve más grande que el arma con el mismo número: por eso es menor.
 ## Si todavía se ven grandes, baja este número; si se ven chicos, súbelo.
-const CONSUMABLE_SIZE: float = 60.0
+const CONSUMABLE_SIZE: float = 65.0
+## Multiplicador individual por arma en el suelo (1.0 = tamaño base de WEAPON_SIZE).
+## Cambia la clave según la propiedad de nombre que tenga tu WeaponData (ej. "weapon_name", "name" o "id").
+const WEAPON_SIZE_MULTIPLIERS: Dictionary = {
+	"bate": 0.55,
+	"bazuca": 0.65,
+	"escopeta": 1.0,
+}
 
 
 func _ready() -> void:
@@ -38,6 +48,9 @@ func _ready() -> void:
 		Kind.CONSUMABLE:
 			if consumable != null:
 				sprite.texture = consumable.get_icon()
+		Kind.ABILITY:
+			if ability != null:
+				sprite.texture = ability.get_icon()
 		Kind.WEAPON:
 			# Cada arma puede traer su propia imagen (WeaponData.icon).
 			if weapon != null and weapon.icon != null:
@@ -45,13 +58,25 @@ func _ready() -> void:
 			else:
 				sprite.texture = WEAPON_TEXTURE
 	if sprite.texture != null:
-		var target_size: float = CONSUMABLE_SIZE if kind == Kind.CONSUMABLE else WEAPON_SIZE
+		var target_size: float = WEAPON_SIZE if kind == Kind.WEAPON else CONSUMABLE_SIZE
 		var tex_size: Vector2 = sprite.texture.get_size()
 		var factor: float = target_size / maxf(tex_size.x, tex_size.y)
+		if kind == Kind.WEAPON and weapon != null:
+			factor *= _get_weapon_multiplier(weapon)
 		sprite.scale = Vector2(factor, factor)
 	add_child(sprite)
 
 	body_entered.connect(_on_body_entered)
+
+
+func _get_weapon_multiplier(w: WeaponData) -> float:
+	for prop in ["weapon_name", "id", "name", "resource_name"]:
+		var val: Variant = w.get(prop)
+		if val != null and String(val) != "":
+			var key := String(val).strip_edges().to_lower()
+			if WEAPON_SIZE_MULTIPLIERS.has(key):
+				return float(WEAPON_SIZE_MULTIPLIERS[key])
+	return 1.0
 
 
 func _on_body_entered(body: Node2D) -> void:
@@ -68,4 +93,8 @@ func _on_body_entered(body: Node2D) -> void:
 			if weapon == null or player.inventory.contains(weapon):
 				return  # no repetir armas (usa DynamicArray.contains)
 			player.add_weapon(weapon)
+		Kind.ABILITY:
+			if ability == null or player.ability == ability:
+				return  # no repetir la misma habilidad
+			player.add_ability(ability)
 	queue_free()
