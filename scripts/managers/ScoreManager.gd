@@ -1,8 +1,9 @@
 extends Node
 ## Puntaje de la partida y ranking de todas las partidas jugadas.
 ##
-## El ranking es un árbol AVL (AVLTree.gd) cuya clave es el puntaje. Se guarda en disco
-## (user://ranking.save) y se vuelve a cargar al abrir el juego.
+## El ranking es un árbol AVL (AVLTree.gd) ordenado primero por puntaje
+## (mayor a menor) y, en caso de empate, por tiempo (menor a mayor). Se guarda
+## en disco (user://ranking.save) y se vuelve a cargar al abrir el juego.
 ##
 ## Se registra como Autoload con el nombre "ScoreManager" (Proyecto > Configuración
 ## del proyecto > Globales), por eso este script NO declara class_name.
@@ -29,7 +30,7 @@ const WAVE_BONUS: int = 200
 ## Puntos extra por ganar la partida (completar todas las oleadas).
 const VICTORY_BONUS: int = 1000
 
-## Ranking de todas las partidas: AVL ordenado por puntaje.
+## Ranking de todas las partidas: AVL ordenado por puntaje y, ante empate, por menor tiempo.
 var ranking: AVLTree = AVLTree.new()
 ## Archivo que se usa para guardar y cargar (se puede cambiar en las pruebas).
 var save_path: String = SAVE_PATH
@@ -101,9 +102,10 @@ func submit(victory: bool) -> Dictionary:
 		score += VICTORY_BONUS
 		score_changed.emit(score)
 
+	var final_time: float = float(run_time)
 	var value: Dictionary = {
 		"waves": waves_completed,
-		"time": run_time,
+		"time": final_time,
 		"victory": victory,
 		"date": Time.get_datetime_string_from_system().replace("T", " ").substr(0, 16),
 	}
@@ -117,7 +119,7 @@ func submit(victory: bool) -> Dictionary:
 		"rank": position,
 		"total": ranking.size(),
 		"waves": waves_completed,
-		"time": run_time,
+		"time": final_time,
 		"victory": victory,
 		"new_record": position == 1 and ranking.size() > 1,
 	}
@@ -158,7 +160,7 @@ func save_to(path: String) -> bool:
 
 
 ## Reconstruye el ranking leyendo el archivo: cada registro se vuelve a insertar en el
-## árbol con su id original, así los empates conservan su orden de llegada.
+## árbol con su id original, así las partidas con igual puntaje y tiempo conservan su id.
 ## Si el archivo no existe (primera vez) el ranking queda vacío y devuelve true.
 ## Si está dañado, el ranking queda vacío, avisa en la consola y devuelve false.
 func load_from(path: String) -> bool:

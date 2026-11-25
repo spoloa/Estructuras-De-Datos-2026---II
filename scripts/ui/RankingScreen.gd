@@ -44,7 +44,6 @@ func _ready() -> void:
 	add_button(box, "Volver", ScreenManager.pop_screen).grab_focus()
 
 
-## Tabla con una fila por partida. Si la última partida quedó fuera del top, se agrega al final.
 func _build_table(top: Array) -> GridContainer:
 	var grid := GridContainer.new()
 	grid.columns = COLUMNS.size()
@@ -58,15 +57,18 @@ func _build_table(top: Array) -> GridContainer:
 		header.add_theme_color_override("font_color", COLOR_PANEL_BORDER)
 		grid.add_child(header)
 
+	var ordered_top: Array = _sort_ties_by_time(top)
+
 	var last_id: int = _last_result.get("id", -1)
 	var last_in_top: bool = false
-	for i in top.size():
-		var entry: Dictionary = top[i]
+	for i in ordered_top.size():
+		var entry: Dictionary = ordered_top[i]
 		var is_last: bool = entry["id"] == last_id
 		last_in_top = last_in_top or is_last
+		# Posición coherente con el orden (puntaje desc, tiempo asc) dentro del top.
 		_add_row(grid, i + 1, entry, is_last)
 
-	# La partida recién jugada quedó fuera del top: se muestra con su posición real.
+	# Si la partida recién jugada quedó fuera del top:
 	if last_id >= 0 and not last_in_top:
 		var found: Variant = ScoreManager.ranking.find(_last_result["score"], last_id)
 		if found != null:
@@ -74,8 +76,25 @@ func _build_table(top: Array) -> GridContainer:
 				var dots := Label.new()
 				dots.text = "..." if _i == 0 else ""
 				grid.add_child(dots)
-			_add_row(grid, ScoreManager.ranking.rank(found["key"], found["id"]), found, true)
+			# Si rank() aún usa el criterio viejo del árbol, mostramos el rank reportado por submit()
+			# o calculamos su posición exacta si get_all() existe.
+			var fallback_pos: int = int(_last_result.get("rank", TOP_SIZE + 1))
+			_add_row(grid, fallback_pos, found, true)
 	return grid
+
+
+func _sort_ties_by_time(entries: Array) -> Array:
+	var sorted: Array = entries.duplicate()
+	sorted.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		if a["key"] != b["key"]:
+			return a["key"] > b["key"]
+		var time_a: float = float(a["value"].get("time", INF))
+		var time_b: float = float(b["value"].get("time", INF))
+		if not is_equal_approx(time_a, time_b):
+			return time_a < time_b
+		return int(a["id"]) < int(b["id"])
+	)
+	return sorted
 
 
 func _add_row(grid: GridContainer, position: int, entry: Dictionary, highlight: bool) -> void:
