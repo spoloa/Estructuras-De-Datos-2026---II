@@ -1,6 +1,6 @@
 class_name MainMenu
 extends MenuScreen
-## Menú principal: Jugar, Controles y Salir.
+## Menú principal: Jugar, Ranking, Controles y Salir.
 ##
 ## Hereda de MenuScreen (igual que PauseMenu y OptionsMenu) para reutilizar
 ## build_layout() y add_button(). Es la raíz de la escena MainMenu.tscn.
@@ -29,6 +29,7 @@ func _ready() -> void:
 	(box.get_child(0) as Label).add_theme_font_size_override("font_size", 32)
 
 	add_button(box, "Jugar", _on_play_pressed).grab_focus()
+	add_button(box, "Ranking", _on_ranking_pressed)
 	add_button(box, "Controles", _on_controls_pressed)
 	add_button(box, "Salir", get_tree().quit)
 
@@ -43,6 +44,11 @@ func _ready() -> void:
 func _on_play_pressed() -> void:
 	ScreenManager.pause_enabled = true  # ya dentro del juego, Esc vuelve a abrir la pausa
 	get_tree().change_scene_to_file(GAME_SCENE)
+
+
+## Abre el ranking de mejores partidas (se apila con ScreenManager; Esc o "Volver" lo cierran).
+func _on_ranking_pressed() -> void:
+	ScreenManager.push_screen(RankingScreen.new())
 
 
 ## Muestra u oculta la lista de controles.

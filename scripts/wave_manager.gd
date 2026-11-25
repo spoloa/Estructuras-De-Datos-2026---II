@@ -3,6 +3,10 @@ extends Node
 ## Oleadas con Queue (orden de las oleadas) y PriorityQueue (orden de aparición dentro de cada oleada).
 
 signal wave_started(number: int)
+## Se emite cuando se derrotan todos los enemigos de una oleada (una vez por oleada).
+signal wave_completed(number: int)
+## Se emite cuando muere un enemigo; type es "chaser" o "shooter". Lo usa el puntaje.
+signal enemy_killed(type: String)
 signal all_waves_completed
 
 @export var shooter_scene: PackedScene
@@ -16,9 +20,10 @@ const PRIORITY := {"chaser": 2, "shooter": 1}
 
 var waves: Queue = Queue.new()
 ## Enemigos vivos de la oleada. Es un diccionario (no un contador) para que un enemigo
-## cuente una sola vez aunque su señal 'died' se emita dos veces.
+## cuente una sola vez aunque su señal 'died' se emita dos veces. Guarda el tipo de cada enemigo.
 var _enemies: Dictionary = {}
 var _wave_number: int = 0
+var _reported_wave: int = 0  # última oleada anunciada con wave_completed
 var _spawning: bool = false
 var _starting_wave: bool = false
 var _completed: bool = false
@@ -77,17 +82,22 @@ func _spawn_enemy(type: String) -> void:
 	var enemy: Node = scene.instantiate()
 	add_child(enemy)
 	enemy.global_position = point.global_position
-	_enemies[enemy] = true
+	_enemies[enemy] = type
 	enemy.died.connect(_on_enemy_died.bind(enemy))
 
 
 func _on_enemy_died(enemy: Node) -> void:
 	if not _enemies.has(enemy):
 		return  # ya estaba descontado (señal repetida): se ignora
+	var type: String = _enemies[enemy]
 	_enemies.erase(enemy)
+	enemy_killed.emit(type)
 	_check_wave_finished()
 
 
 func _check_wave_finished() -> void:
 	if _enemies.is_empty() and not _spawning:
+		if _reported_wave != _wave_number:  # se anuncia una sola vez por oleada
+			_reported_wave = _wave_number
+			wave_completed.emit(_wave_number)
 		_start_next_wave()

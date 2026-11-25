@@ -41,6 +41,7 @@ var _ability_bar: ProgressBar
 var _ability_status: Label
 var _ability: AbilityData  # habilidad que se muestra (null = el panel está oculto)
 var _wave_value: Label
+var _score_value: Label
 var _banner: Label
 var _health_tween: Tween
 var _banner_tween: Tween
@@ -388,6 +389,18 @@ func _build_wave(parent: Control) -> void:
 	_wave_value.add_theme_color_override("font_color", CREAM)
 	col.add_child(_wave_value)
 
+	# Puntaje de la partida en curso (lo calcula ScoreManager).
+	var score_caption := _make_caption("PUNTOS")
+	score_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(score_caption)
+
+	_score_value = Label.new()
+	_score_value.text = "0"
+	_score_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_score_value.add_theme_font_size_override("font_size", 24)
+	_score_value.add_theme_color_override("font_color", GOLD)
+	col.add_child(_score_value)
+
 
 ## Aviso grande que aparece arriba al centro y se desvanece solo.
 func _build_banner() -> void:
@@ -480,6 +493,13 @@ func _connect_signals() -> void:
 	else:
 		wave_manager.wave_started.connect(_on_wave_started)
 		wave_manager.all_waves_completed.connect(_on_all_waves_completed)
+
+	ScoreManager.score_changed.connect(_on_score_changed)
+	_on_score_changed(ScoreManager.score)
+
+
+func _on_score_changed(new_score: int) -> void:
+	_score_value.text = str(new_score)
 
 
 ## La barra se llena/vacía con una animación corta y parpadea al recibir daño.
