@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 ScreenManager="*uid://c8tvysgb2wjig"
 ScoreManager="*res://scripts/managers/ScoreManager.gd"
+UpgradeManager="*res://scripts/managers/UpgradeManager.gd"
 
 [display]
 

@@ -3,6 +3,10 @@
 [ext_resource type="Script" uid="uid://bvw8flucf2bag" path="res://scripts/weapons/WeaponData.gd" id="1_ga2pb"]
 [ext_resource type="Texture2D" uid="uid://b7bk8cojy6wsw" path="res://assets/items/escopeta.png" id="1_yqpuo"]
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_t5ve6"]
+atlas = ExtResource("1_yqpuo")
+region = Rect2(22.400513, 184.16718, 528.9328, 215.65753)
+
 [resource]
 script = ExtResource("1_ga2pb")
 weapon_name = "Escopeta"
@@ -11,5 +15,5 @@ fire_rate = 0.5
 bullet_lifetime = 0.8
 bullets_per_shot = 5
 spread_degrees = 12.0
-icon = ExtResource("1_yqpuo")
+icon = SubResource("AtlasTexture_t5ve6")
 metadata/_custom_type_script = "uid://bvw8flucf2bag"

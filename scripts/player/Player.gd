@@ -10,6 +10,8 @@ signal weapon_changed(weapon: WeaponData, slot: int, total: int)
 signal consumable_added(data: ConsumableData)
 ## Se emite cuando se usa un objeto usable con éxito.
 signal consumable_used(data: ConsumableData)
+## Se emite cuando cambia la cantidad de unidades de un objeto (al recoger o al usar uno).
+signal consumable_count_changed(data: ConsumableData, count: int)
 ## Se emite al cambiar el objeto seleccionado (tecla switch_item).
 signal consumable_selected(data: ConsumableData)
 ## Se emite al conseguir una habilidad (por ejemplo, al recoger el dash del suelo).
@@ -38,6 +40,11 @@ var weapon: WeaponData  # arma equipada actualmente
 var inventory: DynamicArray = DynamicArray.new()
 ## Objetos usables que lleva el jugador (ej. corazón con cooldown).
 var consumables: Array[ConsumableData] = []
+## Máximo de unidades que se pueden llevar de cada objeto (corazón, bomba).
+const MAX_CONSUMABLE_STACK: int = 9
+## Unidades que tienes de cada objeto: {ConsumableData: cantidad}. Un objeto se queda en
+## `consumables` aunque llegue a 0 (así sigues teniéndolo "descubierto" y sus mejoras cuentan).
+var _consumable_counts: Dictionary = {}
 ## Posición del objeto seleccionado dentro de consumables.
 var _selected_item: int = 0
 
@@ -112,14 +119,31 @@ func add_weapon(new_weapon: WeaponData) -> void:
 	weapon_changed.emit(weapon, _slot, inventory.size())
 
 
-## Agrega un objeto usable al inventario (por ejemplo, al recogerlo del suelo).
-func add_consumable(data: ConsumableData) -> void:
-	consumables.append(data)
-	_item_cooldowns[data] = 0.0
-	if consumables.size() == 1:
-		_selected_item = 0
-		consumable_selected.emit(data)
+## Agrega unidades de un objeto usable (por ejemplo, al recogerlo del suelo). Las unidades
+## se apilan: 3 corazones son una sola entrada con cantidad 3.
+## Devuelve false si no se pudo (objeto nulo o ya llevas el máximo), para que el ítem siga en el suelo.
+func add_consumable(data: ConsumableData, amount: int = 1) -> bool:
+	if data == null or amount <= 0:
+		return false
+	var current: int = get_consumable_count(data)
+	if current >= MAX_CONSUMABLE_STACK:
+		return false
+	if not consumables.has(data):
+		consumables.append(data)
+		if not _item_cooldowns.has(data):
+			_item_cooldowns[data] = 0.0  # si ya lo tuvo antes, conserva su recarga (no se salta el cooldown)
+		if consumables.size() == 1:
+			_selected_item = 0
+			consumable_selected.emit(data)
+	_consumable_counts[data] = mini(MAX_CONSUMABLE_STACK, current + amount)
 	consumable_added.emit(data)
+	consumable_count_changed.emit(data, _consumable_counts[data])
+	return true
+
+
+## Cuántas unidades tienes de un objeto (0 si no lo tienes).
+func get_consumable_count(data: ConsumableData) -> int:
+	return _consumable_counts.get(data, 0)
 
 
 ## Cambia al siguiente objeto usable del inventario.
@@ -146,21 +170,28 @@ func use_selected_consumable() -> bool:
 ## Intenta usar un objeto. Devuelve true si se usó.
 ## Su cooldown es propio: no afecta al cooldown de disparo de las armas.
 func use_consumable(data: ConsumableData) -> bool:
-	if health <= 0 or not consumables.has(data):
-		return false
+	if health <= 0 or not consumables.has(data) or get_consumable_count(data) <= 0:
+		return false  # sin unidades no se puede usar
 	if get_item_cooldown_left(data) > 0.0:
 		return false  # todavía en cooldown
 	match data.effect:
 		ConsumableData.Effect.HEAL:
 			if health >= max_health:
 				return false  # vida llena: no gasta el cooldown
-			heal(data.heal_amount)
+			heal(roundi(UpgradeManager.stat(data.display_name, "heal_amount", data.heal_amount)))
 		ConsumableData.Effect.BOMB:
 			if not _throw_bomb(data):
 				return false
-	_item_cooldowns[data] = data.cooldown
+	_consumable_counts[data] = get_consumable_count(data) - 1  # gasta una unidad
+	_item_cooldowns[data] = get_item_cooldown(data)
+	consumable_count_changed.emit(data, _consumable_counts[data])
 	consumable_used.emit(data)
 	return true
+
+
+## Cooldown total del objeto con las mejoras compradas (mínimo 1 segundo).
+func get_item_cooldown(data: ConsumableData) -> float:
+	return maxf(1.0, UpgradeManager.stat(data.display_name, "cooldown", data.cooldown))
 
 
 ## Segundos restantes de cooldown de un objeto (útil para el HUD).
@@ -186,9 +217,16 @@ func use_ability() -> bool:
 		AbilityData.Kind.DASH:
 			if not _start_dash(ability):
 				return false
-	_ability_cooldown = ability.cooldown
+	_ability_cooldown = get_ability_cooldown()
 	ability_used.emit(ability)
 	return true
+
+
+## Cooldown total de la habilidad con las mejoras compradas (mínimo medio segundo).
+func get_ability_cooldown() -> float:
+	if ability == null:
+		return 0.0
+	return maxf(0.5, UpgradeManager.stat(ability.display_name, "cooldown", ability.cooldown))
 
 
 ## Segundos restantes de cooldown de la habilidad (útil para el HUD).
@@ -260,7 +298,9 @@ func _throw_bomb(data: ConsumableData) -> bool:
 	var bomb: Bomb = data.bomb_scene.instantiate()
 	get_tree().current_scene.add_child(bomb)
 	bomb.global_position = global_position
-	bomb.setup(target, data.throw_speed, data.damage, data.blast_radius, self)
+	var bomb_damage: int = roundi(UpgradeManager.stat(data.display_name, "damage", data.damage))
+	var bomb_radius: float = UpgradeManager.stat(data.display_name, "blast_radius", data.blast_radius)
+	bomb.setup(target, data.throw_speed, bomb_damage, bomb_radius, self)
 	return true
 
 
@@ -274,7 +314,8 @@ func _start_dash(data: AbilityData) -> bool:
 	if dir == Vector2.ZERO:
 		return false
 	var duration: float = maxf(data.dash_duration, 0.01)
-	_dash_velocity = dir.normalized() * (data.dash_distance / duration)
+	var distance: float = UpgradeManager.stat(data.display_name, "dash_distance", data.dash_distance)
+	_dash_velocity = dir.normalized() * (distance / duration)
 	_dash_time_left = duration
 	_dash_invulnerable = data.dash_invulnerable
 	if sprite != null:
@@ -299,7 +340,7 @@ func _dash_step(delta: float) -> void:
 func _shoot() -> void:
 	if weapon == null:
 		return
-	_cooldown = 1.0 / weapon.fire_rate
+	_cooldown = 1.0 / maxf(0.05, UpgradeManager.stat(weapon.weapon_name, "fire_rate", weapon.fire_rate))
 	if weapon.attack_type == WeaponData.AttackType.MELEE:
 		_melee_attack()
 	else:
@@ -311,19 +352,24 @@ func _fire_projectiles() -> void:
 	if weapon.rocket_scene == null and bullet_scene == null:
 		return
 	var base_dir := (get_global_mouse_position() - global_position).normalized()
-	for i in weapon.bullets_per_shot:
+	# Estadísticas con las mejoras compradas (ver UpgradeManager.stat).
+	var key: String = weapon.weapon_name
+	var pellets: int = maxi(1, roundi(UpgradeManager.stat(key, "bullets_per_shot", weapon.bullets_per_shot)))
+	var damage: int = roundi(UpgradeManager.stat(key, "damage", weapon.damage))
+	var blast: float = UpgradeManager.stat(key, "blast_radius", weapon.blast_radius)
+	for i in pellets:
 		var angle := deg_to_rad(randf_range(-weapon.spread_degrees, weapon.spread_degrees))
 		var dir := base_dir.rotated(angle)
 		if weapon.rocket_scene != null:
 			var rocket: Rocket = weapon.rocket_scene.instantiate()
 			get_tree().current_scene.add_child(rocket)
 			rocket.global_position = global_position
-			rocket.setup(dir, weapon.bullet_speed, weapon.damage, weapon.bullet_lifetime, self, weapon.blast_radius)
+			rocket.setup(dir, weapon.bullet_speed, damage, weapon.bullet_lifetime, self, blast)
 		else:
 			var bullet: Bullet = bullet_scene.instantiate()
 			get_tree().current_scene.add_child(bullet)
 			bullet.global_position = global_position
-			bullet.setup(dir, weapon.bullet_speed, weapon.damage, weapon.bullet_lifetime, self)
+			bullet.setup(dir, weapon.bullet_speed, damage, weapon.bullet_lifetime, self)
 
 
 ## Golpe cuerpo a cuerpo: daña a todo lo que esté dentro del alcance y del arco hacia el mouse.
@@ -331,15 +377,17 @@ func _melee_attack() -> void:
 	var aim := (get_global_mouse_position() - global_position).normalized()
 	if aim == Vector2.ZERO:
 		aim = Vector2.RIGHT
+	var melee_range: float = UpgradeManager.stat(weapon.weapon_name, "melee_range", weapon.melee_range)
+	var melee_damage: int = roundi(UpgradeManager.stat(weapon.weapon_name, "damage", weapon.damage))
 
 	# Efecto visual del golpe.
 	var swing := MeleeSwing.new()
 	add_child(swing)
-	swing.play(aim, weapon.melee_range, weapon.melee_arc_degrees)
+	swing.play(aim, melee_range, weapon.melee_arc_degrees)
 
 	# Todo lo que toque el círculo de alcance...
 	var shape := CircleShape2D.new()
-	shape.radius = weapon.melee_range
+	shape.radius = melee_range
 	var query := PhysicsShapeQueryParameters2D.new()
 	query.shape = shape
 	query.transform = Transform2D(0.0, global_position)
@@ -359,4 +407,4 @@ func _melee_attack() -> void:
 			continue
 		var to_target: Vector2 = (target as Node2D).global_position - global_position
 		if to_target == Vector2.ZERO or absf(aim.angle_to(to_target)) <= half_arc:
-			target.take_damage(weapon.damage)
+			target.take_damage(melee_damage)

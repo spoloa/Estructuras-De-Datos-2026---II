@@ -1,7 +1,7 @@
 class_name GameFlow
 extends Node
 ## Controla cómo empieza y termina la partida:
-##   - Al empezar            -> reinicia el puntaje (ScoreManager.start_run)
+##   - Al empezar            -> reinicia el puntaje (ScoreManager.start_run) y la XP/mejoras (UpgradeManager.reset)
 ##   - Mientras se juega     -> le pasa al puntaje los enemigos derrotados y las oleadas completadas
 ##   - Si el jugador muere   -> guarda la partida en el ranking y muestra "GAME OVER"
 ##   - Si se completan las oleadas -> guarda la partida en el ranking y muestra "¡VICTORIA!"
@@ -21,6 +21,7 @@ func _ready() -> void:
 		push_warning("GameFlow: falta asignar Player o WaveManager en el Inspector")
 		return
 	ScoreManager.start_run()
+	UpgradeManager.reset()  # sin XP ni mejoras al empezar
 	wave_manager.enemy_killed.connect(ScoreManager.add_kill)
 	wave_manager.wave_completed.connect(ScoreManager.add_wave_bonus)
 	player.died.connect(_on_player_died)

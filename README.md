@@ -17,7 +17,8 @@ El objetivo del proyecto no es solo el juego, sino **integrar estructuras de dat
 | Arreglo dinámico (`DynamicArray`) | Inventario de armas del jugador |
 | Cola (`Queue`) | Orden en que se lanzan las oleadas de enemigos |
 | Cola con prioridad (`PriorityQueue`) | Orden de aparición de los enemigos dentro de cada oleada |
-| Pila (`Stack`) | Pantallas de menú abiertas (pausa, opciones), manejadas por `ScreenManager` |
+| Pila (`Stack`) | Pantallas de menú abiertas (pausa, opciones, mejoras), manejadas por `ScreenManager` |
+| Árbol n-ario (`NaryTree`) | Árbol de mejoras de armas, objetos y habilidades (3 niveles cada uno) |
 
 ---
 
@@ -71,7 +72,7 @@ Las cuatro estructuras están en la carpeta `scripts/` y están implementadas ma
 
 **Cómo:** arreglo con un índice de cabeza (`_head`). Así `dequeue()` es O(1) amortizado, en lugar de O(n) que costaría quitar el primer elemento de un arreglo y desplazar todo. Cuando más de la mitad del arreglo son espacios ya consumidos, se compacta.
 
-**Uso en el juego:** `WaveManager` tiene una `Queue` llamada `waves`. Cada elemento de la cola es una oleada, descrita con un diccionario de Godot que indica cuántos enemigos de cada tipo salen (por ejemplo `{"chaser": 3, "shooter": 3}`). Cuando una oleada termina, `WaveManager` saca la siguiente con `dequeue()`; cuando la cola queda vacía, el juego emite `all_waves_completed`.
+**Uso en el juego:** `WaveManager` tiene una `Queue` llamada `waves`. Cada elemento de la cola es una oleada, descrita con un diccionario de Godot que indica cuántos enemigos de cada tipo salen (por ejemplo `{"chaser": 3, "shooter": 3}`, y opcionalmente `"interval"` con los segundos entre apariciones de esa oleada). Cuando una oleada termina, `WaveManager` saca la siguiente con `dequeue()`; cuando la cola queda vacía, el juego emite `all_waves_completed`.
 
 > **Nota sobre el diccionario:** `WaveManager` también usa un `Dictionary` propio de Godot (`_enemies`) para llevar la cuenta de los enemigos vivos de la oleada y evitar contar dos veces al mismo enemigo si su señal `died` se emite repetida. Es una herramienta de apoyo del lenguaje; la estructura de datos que ordena las oleadas es la `Queue`.
 
@@ -97,6 +98,27 @@ Las cuatro estructuras están en la carpeta `scripts/` y están implementadas ma
 
 **Archivos:** `scripts/Stack.gd` (estructura) y `scripts/ScreenManager.gd` (uso, registrado como Autoload en `Proyecto > Configuración del proyecto > Globales`).
 
+### 5. Árbol n-ario — `NaryTree`
+
+**Por qué:** las mejoras tienen dependencias: el nivel 2 de un arma solo se puede comprar si ya se tiene el arma (nivel 1), y el nivel 3 solo si ya se compró el nivel 2. Además cada arma, objeto o habilidad es una rama distinta que cuelga de una categoría. "Para llegar a un nodo hay que pasar por su padre" es justo la relación de un árbol, y como un padre puede tener muchos hijos (la categoría *Armas* tiene 4 armas) hace falta un árbol n-ario, no uno binario.
+
+**Cómo:** cada `NaryNode` guarda su valor, su padre y un arreglo de hijos (sin límite). `NaryTree` agrega nodos y recorre el árbol en preorden con una **pila** propia (`Stack`), sin recursión.
+
+```
+Raíz
+├── Armas ──────── Pistola ─ Nivel 2 ─ Nivel 3   (y Escopeta, Bazuca, Bate)
+├── Objetos ────── Corazón ─ Nivel 2 ─ Nivel 3   (y Bomba)
+└── Habilidades ── Dash ──── Nivel 2 ─ Nivel 3
+```
+
+**Uso en el juego:** al morir, los enemigos sueltan XP al azar dentro de un intervalo (`xp_min`, `xp_max`; los tiradores más que los perseguidores). `UpgradeManager` (Autoload) guarda la XP y las mejoras compradas, y `buy()` solo permite comprar un nodo si su **padre** ya está obtenido y alcanza la XP. `Player` lee sus estadísticas con `UpgradeManager.stat()`, que suma las mejoras compradas al valor base del recurso (los `.tres` no se modifican, así que las mejoras no se quedan pegadas entre partidas). La tecla **U** abre `UpgradeScreen`, que se apila con `ScreenManager` y tiene dos mini ventanas: *Tus mejoras* y *Árbol de mejoras*.
+
+**Objetos apilables y drops sin repetir:** los corazones y las bombas se apilan en el inventario (`Player.add_consumable`, máximo 9 por tipo) y cada uso gasta una unidad, además de respetar su cooldown. Las armas y el dash no se sueltan si el jugador ya los tiene o si ya hay uno igual en el suelo (`ItemPickup.is_on_floor`), y al recoger uno se borran los demás del suelo.
+
+**Para agregar o balancear mejoras** solo hay que editar las tablas de `UpgradeCatalog.gd`.
+
+**Archivos:** `scripts/data_structures/NaryNode.gd` y `NaryTree.gd` (estructura), `scripts/upgrades/UpgradeData.gd` y `UpgradeCatalog.gd` (datos y árbol), `scripts/managers/UpgradeManager.gd` (XP y reglas), `scripts/ui/UpgradeScreen.gd` (interfaz).
+
 ---
 
 ## Pruebas
@@ -109,6 +131,7 @@ El proyecto incluye un script de pruebas automáticas de las estructuras: res://
 
 | Estructura | Qué se verifica |
 |---|---|
+| NaryTree / mejoras | Hijos, tamaño, altura, preorden, `find`, camino a la raíz; forma del árbol de mejoras (3 niveles por objeto), reglas de compra y suma de estadísticas |
 | Stack | Nueva está vacía, `peek` devuelve el tope, `pop` en orden inverso, `size`, y devuelve `null` si está vacía |
 | Queue | Respeta el orden FIFO (incluso con compactación), `size`, `peek`, `clear` y devuelve `null` si está vacía |
 | PriorityQueue | Sale primero la mayor prioridad, desempate por orden de llegada, queda vacía al final |
@@ -127,6 +150,8 @@ El proyecto incluye un script de pruebas automáticas de las estructuras: res://
 | Queue | `enqueue`, `dequeue`, `peek`, `size`, `is_empty` | O(1) amortizado |
 | PriorityQueue | `enqueue`, `dequeue` | O(log n) |
 | PriorityQueue | `peek`, `size`, `is_empty` | O(1) |
+| NaryTree | `add_node` | O(1) |
+| NaryTree | `size`, `height`, `find`, `find_all`, `preorder` | O(n) |
 
 ---
 

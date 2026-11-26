@@ -11,6 +11,9 @@ signal died
 ## Distancia a la que se detiene para disparar (no se pega al jugador).
 @export var stop_distance: float = 180.0
 @export var chase_forever: bool = true
+## XP que suelta al morir: un número al azar entre xp_min y xp_max (los tiradores dan más que los perseguidores).
+@export var xp_min: int = 3
+@export var xp_max: int = 6
 
 var health: int
 var _dead := false  # true en cuanto muere (evita morir dos veces)
@@ -101,5 +104,6 @@ func take_damage(amount: int) -> void:
 	if health <= 0:
 		_dead = true
 		died.emit()
+		UpgradeManager.drop_xp(self, xp_min, xp_max)
 		ItemDrop.try_drop(self)
 		queue_free()

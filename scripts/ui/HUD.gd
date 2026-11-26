@@ -42,6 +42,7 @@ var _ability_status: Label
 var _ability: AbilityData  # habilidad que se muestra (null = el panel está oculto)
 var _wave_value: Label
 var _score_value: Label
+var _xp_value: Label
 var _banner: Label
 var _health_tween: Tween
 var _banner_tween: Tween
@@ -240,7 +241,7 @@ func _refresh_item() -> void:
 		_item_status.text = "---"
 		return
 	_item_icon.texture = _item.get_icon()
-	_item_name.text = _item.display_name.to_upper()
+	_item_name.text = "%s  x%d" % [_item.display_name.to_upper(), player.get_consumable_count(_item)]
 	_item_name.modulate = Color.WHITE
 	_update_item_cooldown()
 
@@ -268,8 +269,13 @@ func _update_item_cooldown() -> void:
 	if _item == null or player == null:
 		return
 	var left: float = player.get_item_cooldown_left(_item)
-	if left > 0.0 and _item.cooldown > 0.0:
-		_item_bar.value = 1.0 - left / _item.cooldown
+	var total: float = player.get_item_cooldown(_item)  # con las mejoras compradas
+	if player.get_consumable_count(_item) <= 0:
+		_item_bar.value = 0.0
+		_item_status.text = "SIN UNIDADES"
+		_item_icon.modulate = Color(0.45, 0.45, 0.45)
+	elif left > 0.0 and total > 0.0:
+		_item_bar.value = 1.0 - minf(left / total, 1.0)
 		_item_status.text = "%.1fs" % left
 		_item_icon.modulate = Color(0.45, 0.45, 0.45)  # apagado mientras recarga
 	else:
@@ -358,8 +364,9 @@ func _update_ability_cooldown() -> void:
 	if _ability == null or player == null:
 		return
 	var left: float = player.get_ability_cooldown_left()
-	if left > 0.0 and _ability.cooldown > 0.0:
-		_ability_bar.value = 1.0 - left / _ability.cooldown
+	var total: float = player.get_ability_cooldown()  # con las mejoras compradas
+	if left > 0.0 and total > 0.0:
+		_ability_bar.value = 1.0 - minf(left / total, 1.0)
 		_ability_status.text = "%.1fs" % left
 		_ability_icon.modulate = Color(0.45, 0.45, 0.45)  # apagada mientras recarga
 	else:
@@ -400,6 +407,22 @@ func _build_wave(parent: Control) -> void:
 	_score_value.add_theme_font_size_override("font_size", 24)
 	_score_value.add_theme_color_override("font_color", GOLD)
 	col.add_child(_score_value)
+
+	# XP para comprar mejoras (la gasta la pantalla de mejoras, tecla U).
+	var xp_caption := _make_caption("XP")
+	xp_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(xp_caption)
+
+	_xp_value = Label.new()
+	_xp_value.text = "0"
+	_xp_value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_xp_value.add_theme_font_size_override("font_size", 24)
+	_xp_value.add_theme_color_override("font_color", CREAM)
+	col.add_child(_xp_value)
+
+	var upgrades_hint := _make_caption("[U] MEJORAS")
+	upgrades_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(upgrades_hint)
 
 
 ## Aviso grande que aparece arriba al centro y se desvanece solo.
@@ -479,6 +502,7 @@ func _connect_signals() -> void:
 		player.weapon_changed.connect(_on_weapon_changed)
 		player.consumable_added.connect(_on_consumable_added)
 		player.consumable_selected.connect(_on_consumable_selected)
+		player.consumable_count_changed.connect(_on_consumable_count_changed)
 		_item = player.get_selected_consumable()
 		_refresh_item()
 		player.ability_changed.connect(_on_ability_changed)
@@ -496,10 +520,16 @@ func _connect_signals() -> void:
 
 	ScoreManager.score_changed.connect(_on_score_changed)
 	_on_score_changed(ScoreManager.score)
+	UpgradeManager.xp_changed.connect(_on_xp_changed)
+	_on_xp_changed(UpgradeManager.xp)
 
 
 func _on_score_changed(new_score: int) -> void:
 	_score_value.text = str(new_score)
+
+
+func _on_xp_changed(new_xp: int) -> void:
+	_xp_value.text = str(new_xp)
 
 
 ## La barra se llena/vacía con una animación corta y parpadea al recibir daño.
@@ -537,6 +567,11 @@ func _on_weapon_changed(weapon: WeaponData, slot: int, total: int) -> void:
 func _on_consumable_added(data: ConsumableData) -> void:
 	_refresh_item()
 	_show_banner("¡%s!  [E] CAMBIAR · [CLIC DER.] USAR" % data.display_name.to_upper())
+
+
+## Al recoger o usar una unidad se actualiza el número del panel.
+func _on_consumable_count_changed(_data: ConsumableData, _count: int) -> void:
+	_refresh_item()
 
 
 ## Al cambiar de objeto con la tecla E se actualiza el panel.

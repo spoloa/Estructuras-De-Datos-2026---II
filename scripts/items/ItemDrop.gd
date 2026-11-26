@@ -5,12 +5,12 @@ extends RefCounted
 ## Probabilidad de soltar un arma nueva (0.0 a 1.0). Se elige al azar entre DROP_WEAPONS.
 const WEAPON_CHANCE: float = 0.15
 ## Probabilidad de soltar una bomba (0.0 a 1.0).
-const BOMB_CHANCE: float = 0.15
+const BOMB_CHANCE: float = 0.20
 ## Probabilidad de soltar un dash (0.0 a 1.0).
 const DASH_CHANCE: float = 0.15
-## Probabilidad de soltar un corazón (0.0 a 1.0).
-const HEART_CHANCE: float = 0.20
-## Armas que se pueden encontrar en el suelo (el jugador no recibe las que ya tiene).
+## Probabilidad de soltar un corazón (0.0 a 1.s0).
+const HEART_CHANCE: float = 0.25
+## Armas que se pueden encontrar en el suelo (no se sueltan las que el jugador ya tiene ni las que ya están en el suelo).
 const DROP_WEAPONS := [
 	preload("res://resources/weapons/Escopeta.tres"),
 	preload("res://resources/weapons/Bazuca.tres"),
@@ -36,16 +36,22 @@ static func try_drop(source: Node2D) -> void:
 		item.kind = ItemPickup.Kind.WEAPON
 		item.weapon = weapon
 	elif roll < WEAPON_CHANCE + BOMB_CHANCE:
+		if _stack_full(source, DROP_BOMB):
+			item.free()  # ya lleva el máximo de bombas: no se suelta otra
+			return
 		item.kind = ItemPickup.Kind.CONSUMABLE
 		item.consumable = DROP_BOMB
 	elif roll < WEAPON_CHANCE + BOMB_CHANCE + DASH_CHANCE:
 		var player := _get_player(source)
-		if player != null and player.ability == DROP_DASH:
-			item.free()  # ya tiene el dash: no se suelta otro
+		if (player != null and player.ability == DROP_DASH) or ItemPickup.is_on_floor(ItemPickup.Kind.ABILITY, DROP_DASH):
+			item.free()  # ya tiene el dash, o ya hay uno en el suelo: no se suelta otro
 			return
 		item.kind = ItemPickup.Kind.ABILITY
 		item.ability = DROP_DASH
 	elif roll < WEAPON_CHANCE + BOMB_CHANCE + DASH_CHANCE + HEART_CHANCE:
+		if _stack_full(source, DROP_CONSUMABLE):
+			item.free()  # ya lleva el máximo de corazones: no se suelta otro
+			return
 		item.kind = ItemPickup.Kind.CONSUMABLE
 		item.consumable = DROP_CONSUMABLE
 	else:
@@ -55,6 +61,7 @@ static func try_drop(source: Node2D) -> void:
 	# Se hace en diferido porque el enemigo muere dentro de una colisión de la bala,
 	# y Godot no permite agregar áreas de colisión mientras procesa la física.
 	var position: Vector2 = source.global_position
+	ItemPickup.register(item)
 	source.get_tree().current_scene.add_child.call_deferred(item)
 	item.set_deferred("global_position", position)
 
@@ -64,11 +71,18 @@ static func _pick_weapon(source: Node2D) -> WeaponData:
 	var player := _get_player(source)
 	var candidates: Array[WeaponData] = []
 	for w in DROP_WEAPONS:
-		if player == null or not player.inventory.contains(w):
+		var already_has: bool = player != null and player.inventory.contains(w)
+		if not already_has and not ItemPickup.is_on_floor(ItemPickup.Kind.WEAPON, w):
 			candidates.append(w)
 	if candidates.is_empty():
 		return null
 	return candidates.pick_random()
+
+
+## true si el jugador ya lleva el máximo de unidades de ese objeto.
+static func _stack_full(source: Node2D, data: ConsumableData) -> bool:
+	var player := _get_player(source)
+	return player != null and player.get_consumable_count(data) >= Player.MAX_CONSUMABLE_STACK
 
 
 ## El jugador de la partida (null si no se encuentra).

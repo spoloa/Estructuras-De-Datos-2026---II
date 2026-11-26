@@ -62,3 +62,8 @@ func pop_screen() -> void:
 ## true si no hay ningún menú abierto.
 func is_empty() -> bool:
 	return _stack.is_empty()
+
+
+## Pantalla que está arriba de la pila (null si no hay ninguna). No la quita.
+func top_screen() -> Control:
+	return _stack.peek()

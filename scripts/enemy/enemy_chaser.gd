@@ -11,6 +11,9 @@ signal died
 ## Si el dibujo original del sprite mira a la IZQUIERDA, déjalo en true.
 ## Si mira a la DERECHA, ponlo en false.
 @export var sprite_faces_left: bool = true
+## XP que suelta al morir: un número al azar entre xp_min y xp_max.
+@export var xp_min: int = 2
+@export var xp_max: int = 4
 
 var health: int
 var _dead := false  # true en cuanto muere (evita morir dos veces)
@@ -78,5 +81,6 @@ func take_damage(amount: int) -> void:
 	if health <= 0:
 		_dead = true
 		died.emit()
+		UpgradeManager.drop_xp(self, xp_min, xp_max)
 		ItemDrop.try_drop(self)
 		queue_free()

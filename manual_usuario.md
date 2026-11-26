@@ -1,7 +1,7 @@
 # Manual de usuario
 
 **Bienvenido a la patria milagro** es un juego de acción en 2D visto desde arriba: te mueves
-por una arena, apuntas con el mouse y sobrevives a tres oleadas de enemigos.
+por una arena, apuntas con el mouse y sobrevives a siete oleadas de enemigos.
 
 ## Objetivo
 
@@ -27,6 +27,8 @@ Durante la partida suena una música de fondo. Su volumen se cambia desde el men
 | Usar el objeto seleccionado | Clic derecho (la bomba se lanza hacia el cursor) |
 | Cambiar de arma | Q |
 | Cambiar de objeto | E |
+| Habilidad (dash) | Shift izquierdo |
+| Abrir / cerrar las mejoras | U |
 | Pausa / volver atrás en un menú | Esc |
 
 Tu personaje mira hacia donde está el cursor, que es hacia donde dispara.
@@ -48,6 +50,7 @@ vea el escenario detrás:
   (la dorada). Si no tienes ninguno, el panel dice **VACÍO**. Cambias de objeto con **E**.
 - **Oleada (arriba a la derecha):** oleada actual / total de oleadas. Al terminar todas
   muestra **¡LISTO!**.
+- **XP (arriba a la derecha, debajo de los puntos):** la experiencia que llevas para comprar mejoras, con el recordatorio `[U] MEJORAS`.
 - **Avisos:** en el centro aparece un mensaje grande que se desvanece solo: **¡PREPÁRATE!**
   al empezar, **¡OLEADA 2!** al comenzar cada oleada y, al recoger un objeto, el nombre del
   objeto con las teclas para usarlo.
@@ -66,18 +69,26 @@ sueltan.
 
 ### Oleadas
 
-El juego tiene **3 oleadas**, cada una más grande que la anterior:
+El juego tiene **7 oleadas**, cada una más larga que la anterior. La **oleada 5 es la más difícil**:
+sale casi una avalancha de enemigos.
 
-| Oleada | Perseguidores | Tiradores | Total |
-|---|---|---|---|
-| 1 | 2 | 1 | 3 |
-| 2 | 3 | 3 | 6 |
-| 3 | 4 | 5 | 9 |
+| Oleada | Perseguidores | Tiradores | Total | Aparición |
+|---|---|---|---|---|
+| 1 | 4 | 2 | 6 | cada 2.5 s |
+| 2 | 6 | 4 | 10 | cada 2.5 s |
+| 3 | 8 | 6 | 14 | cada 2.5 s |
+| 4 | 10 | 8 | 18 | cada 2.5 s |
+| 5 | 18 | 14 | 32 | cada 1 s |
+| 6 | 10 | 8 | 18 | cada 2.5 s |
+| 7 | 14 | 12 | 26 | cada 1.5 s |
 
-- Los enemigos de una oleada aparecen de uno en uno (cada 2.5 s) por dos puntos de aparición;
+- Los enemigos de una oleada aparecen de uno en uno por dos puntos de aparición;
   **los Perseguidores salen primero** y después los Tiradores.
+- Todos salen sabiendo dónde estás: te persiguen desde que aparecen.
+- Si un enemigo se queda atorado lejos de ti más de 6 segundos, se le cambia de lugar a un punto de aparición para que la oleada no se trabe.
+- Los enemigos no aparecen mientras el juego está en pausa (por ejemplo, con la pantalla de mejoras abierta).
 - Una oleada nueva empieza 6 segundos después de derrotar a todos los enemigos de la anterior.
-- Ganas cuando mueren todos los enemigos de la oleada 3.
+- Ganas cuando mueren todos los enemigos de la oleada 7.
 
 ## Ítems
 
@@ -94,13 +105,18 @@ enemigo se tira un dado:
 | Ítem | Tipo | Efecto |
 |---|---|---|
 | Escopeta | Arma | Se agrega a tu inventario de armas (si ya la tienes no se recoge). |
-| Corazón | Objeto | Se guarda en tu inventario de objetos. Al usarlo recupera 1 de vida y luego debe recargarse 10 segundos. No se puede usar con la vida llena (así no gastas la recarga). |
-| Bomba | Objeto | Se guarda en tu inventario de objetos. Al usarla, la lanzas hacia el cursor (hasta unos 450 píxeles), explota y hace daño en área. Recarga de 15 segundos. |
+| Dash | Habilidad | Se usa con Shift izquierdo. Solo se recoge una vez. |
+| Corazón | Objeto | Suma 1 unidad a tu pila de corazones. Al usar uno recupera 1 de vida y luego debe recargarse 10 segundos. No se puede usar con la vida llena (así no gastas la unidad ni la recarga). |
+| Bomba | Objeto | Suma 1 unidad a tu pila de bombas. Al usar una, la lanzas hacia el cursor (hasta unos 450 píxeles), explota y hace daño en área. Recarga de 15 segundos. |
 
-Los objetos **no se gastan**: el corazón y la bomba se pueden usar una y otra vez, esperando a
-que termine su recarga. Solo puedes llevar uno de cada tipo (si ya lo tienes, el del suelo no
-se recoge). La recarga de los objetos es independiente de la de las armas: lanzar una bomba
-no te impide seguir disparando.
+Los corazones y las bombas **se apilan y se gastan**: cada vez que usas uno pierdes una unidad
+(el HUD muestra por ejemplo `CORAZÓN x3`). Puedes llevar hasta 9 de cada uno; si ya llevas 9, el del
+suelo no se recoge. Aunque tengas varias unidades, entre un uso y otro hay que esperar la recarga.
+Si te quedas en 0 el panel dice **SIN UNIDADES** hasta que recojas otro. La recarga de los objetos es
+independiente de la de las armas: lanzar una bomba no te impide seguir disparando.
+
+Las **armas y el dash no se repiten**: no se suelta una si ya la tienes o si ya hay una igual
+en el suelo, y al recogerla desaparecen las demás copias que hubiera.
 
 ## Armas
 
@@ -123,6 +139,30 @@ continua; el arma dispara sola según su cadencia.
 
 Cambia de objeto con **E** y úsalo con el **clic derecho**. La bomba vuela hasta el punto
 donde está el cursor (con un alcance máximo), muestra una animación de explosión y desaparece.
+
+## XP y mejoras
+
+Cada enemigo suelta **XP** al morir (aparece un `+N XP` flotando donde cayó). La cantidad es
+un número al azar dentro de un intervalo, y los tiradores dan más que los perseguidores:
+
+| Enemigo | XP al morir |
+|---|---|
+| Perseguidor | de 3 a 6 |
+| Tirador | de 6 a 12 |
+
+Con **U** se abre la pantalla de **Mejoras** (el juego queda en pausa; **U**, **Esc** o **Cerrar** la cierran).
+Tiene dos mini ventanas:
+
+- **Tus mejoras (izquierda):** una casilla por cada arma, objeto y habilidad que tienes, con tres
+  casillitas que indican tu nivel (1 a 3). Pasa el mouse sobre una casilla para ver sus
+  estadísticas actuales y las mejoras que ya compraste.
+- **Árbol de mejoras (derecha):** todas las mejoras posibles. Cada arma, objeto y habilidad tiene
+  **3 niveles**: el nivel 1 es el base (el que ya existe) y los niveles 2 y 3 se compran con XP.
+  Un nivel solo se puede comprar si ya tienes el anterior (y, para el nivel 2, si ya tienes el
+  objeto). Colores: dorado = ya la tienes, azul = puedes comprarla, rojo = te falta XP,
+  gris = bloqueada. Haz clic en una mejora azul para comprarla.
+
+Las mejoras duran lo que dura la partida: al empezar otra, vuelves a tener 0 XP y todo en nivel 1.
 
 ## Menú de pausa
 
