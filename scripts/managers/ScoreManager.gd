@@ -1,9 +1,8 @@
 extends Node
 ## Puntaje de la partida y ranking de todas las partidas jugadas.
 ##
-## El ranking es un árbol AVL (AVLTree.gd) ordenado primero por puntaje
-## (mayor a menor) y, en caso de empate, por tiempo (menor a mayor). Se guarda
-## en disco (user://ranking.save) y se vuelve a cargar al abrir el juego.
+## El ranking es un árbol AVL (AVLTree.gd) cuya clave es el puntaje. Se guarda en disco
+## (user://ranking.save) y se vuelve a cargar al abrir el juego.
 ##
 ## Se registra como Autoload con el nombre "ScoreManager" (Proyecto > Configuración
 ## del proyecto > Globales), por eso este script NO declara class_name.
@@ -12,7 +11,7 @@ extends Node
 ##   start_run()                 al empezar la partida (reinicia puntaje y tiempo)
 ##   add_kill(tipo)              cada vez que muere un enemigo
 ##   add_wave_bonus(n)           cada vez que se completa una oleada
-##   submit(victoria)            al terminar: guarda la partida en el ranking
+##   submit(victoria, nickname)  al terminar: guarda la partida en el ranking
 ##                               y devuelve el puntaje y la posición obtenida
 
 ## Se emite cada vez que cambia el puntaje de la partida en curso.
@@ -30,7 +29,7 @@ const WAVE_BONUS: int = 200
 ## Puntos extra por ganar la partida (completar todas las oleadas).
 const VICTORY_BONUS: int = 1000
 
-## Ranking de todas las partidas: AVL ordenado por puntaje y, ante empate, por menor tiempo.
+## Ranking de todas las partidas: AVL ordenado por puntaje.
 var ranking: AVLTree = AVLTree.new()
 ## Archivo que se usa para guardar y cargar (se puede cambiar en las pruebas).
 var save_path: String = SAVE_PATH
@@ -91,9 +90,10 @@ func add_points(amount: int) -> void:
 
 ## Termina la partida: la guarda en el ranking y devuelve el resultado:
 ##   {"score", "id", "rank" (1 = la mejor), "total" (partidas en el ranking),
-##    "waves", "time", "victory", "new_record"}
+##    "waves", "time", "victory", "new_record", "nickname"}
+## nickname es el nombre del jugador que se guarda junto a la partida.
 ## Solo guarda una vez por partida: si se llama de nuevo devuelve el mismo resultado.
-func submit(victory: bool) -> Dictionary:
+func submit(victory: bool, nickname: String = "") -> Dictionary:
 	if _submitted:
 		return _last_result
 	_submitted = true
@@ -102,11 +102,11 @@ func submit(victory: bool) -> Dictionary:
 		score += VICTORY_BONUS
 		score_changed.emit(score)
 
-	var final_time: float = float(run_time)
 	var value: Dictionary = {
 		"waves": waves_completed,
-		"time": final_time,
+		"time": run_time,
 		"victory": victory,
+		"nickname": nickname,
 		"date": Time.get_datetime_string_from_system().replace("T", " ").substr(0, 16),
 	}
 	var id: int = ranking.insert(score, value)
@@ -119,9 +119,10 @@ func submit(victory: bool) -> Dictionary:
 		"rank": position,
 		"total": ranking.size(),
 		"waves": waves_completed,
-		"time": final_time,
+		"time": run_time,
 		"victory": victory,
 		"new_record": position == 1 and ranking.size() > 1,
+		"nickname": nickname,
 	}
 	return _last_result
 
@@ -160,7 +161,7 @@ func save_to(path: String) -> bool:
 
 
 ## Reconstruye el ranking leyendo el archivo: cada registro se vuelve a insertar en el
-## árbol con su id original, así las partidas con igual puntaje y tiempo conservan su id.
+## árbol con su id original, así los empates conservan su orden de llegada.
 ## Si el archivo no existe (primera vez) el ranking queda vacío y devuelve true.
 ## Si está dañado, el ranking queda vacío, avisa en la consola y devuelve false.
 func load_from(path: String) -> bool:
@@ -183,6 +184,7 @@ func load_from(path: String) -> bool:
 			"waves": int(item.get("waves", 0)),
 			"time": float(item.get("time", 0.0)),
 			"victory": bool(item.get("victory", false)),
+			"nickname": str(item.get("nickname", "")),
 			"date": str(item.get("date", "")),
 		}
 		ranking.insert(int(item["score"]), value, int(item["id"]))

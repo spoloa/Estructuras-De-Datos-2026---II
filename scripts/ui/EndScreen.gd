@@ -40,7 +40,7 @@ func _ready() -> void:
 ## Puntaje, posición en el ranking, oleadas y tiempo de la partida que acaba de terminar.
 func _add_result(box: VBoxContainer) -> void:
 	var score := Label.new()
-	score.text = "Puntaje: %d" % _result["score"]
+	score.text = "%s: %d" % [_result["nickname"] if _result.get("nickname", "") != "" else "Puntaje", _result["score"]]
 	score.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	score.add_theme_font_size_override("font_size", 30)
 	box.add_child(score)

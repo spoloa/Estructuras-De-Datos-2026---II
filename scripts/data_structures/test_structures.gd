@@ -5,7 +5,7 @@ extends Node
 ## La salida aparece en el panel "Output" de Godot.
 
 const ScoreManagerScript := preload("res://scripts/managers/ScoreManager.gd")
-const UpgradeManagerScript := preload("res://scripts/managers/UpgradeManager.gd")
+const PlayerProfileScript := preload("res://scripts/managers/PlayerProfile.gd")
 
 var _passed: int = 0
 var _failed: int = 0
@@ -23,8 +23,7 @@ func _ready() -> void:
 	_test_avl_ties()
 	_test_avl_preorder_rebuild()
 	_test_score_manager()
-	_test_nary_tree()
-	_test_upgrade_tree()
+	_test_player_profile()
 	print("--- Resultado: %d OK, %d fallos ---" % [_passed, _failed])
 
 
@@ -336,70 +335,49 @@ func _test_score_manager() -> void:
 
 
 # ---------------------------------------------------------------------------
-# Árbol n-ario y árbol de mejoras
+# Nickname del jugador (PlayerProfile)
 # ---------------------------------------------------------------------------
 
-## Estructura básica del árbol n-ario: hijos, tamaño, altura, recorrido y camino a la raíz.
-func _test_nary_tree() -> void:
-	var t := NaryTree.new("raíz")
-	_check(t.size() == 1 and t.height() == 1 and t.root.is_leaf(), "NaryTree: nuevo solo tiene la raíz")
-	var a: NaryNode = t.add_node(t.root, "A")
-	var b: NaryNode = t.add_node(t.root, "B")
-	var c: NaryNode = t.add_node(t.root, "C")  # la raíz tiene 3 hijos: no es binario
-	var a1: NaryNode = t.add_node(a, "A1")
-	var a2: NaryNode = t.add_node(a, "A2")
-	var a11: NaryNode = t.add_node(a1, "A11")
-	_check(t.size() == 7 and t.root.children.size() == 3, "NaryTree: size y cantidad de hijos")
-	_check(t.height() == 4, "NaryTree: altura cuenta niveles (raíz > A > A1 > A11)")
-	_check(a11.depth() == 3 and t.root.depth() == 0 and a11.parent == a1, "NaryTree: depth y parent")
-	var order: Array = []
-	for n in t.preorder():
-		order.append(n.value)
-	_check(order == ["raíz", "A", "A1", "A11", "A2", "B", "C"], "NaryTree: preorden (padre antes que hijos, izquierda a derecha)")
-	_check(t.preorder(a).size() == 4, "NaryTree: preorden de un subárbol")
-	_check(t.find(func(n: NaryNode) -> bool: return n.value == "A2") == a2, "NaryTree: find encuentra el nodo")
-	_check(t.find(func(n: NaryNode) -> bool: return n.value == "Z") == null, "NaryTree: find devuelve null si no existe")
-	_check(t.find_all(func(n: NaryNode) -> bool: return n.is_leaf()).size() == 4, "NaryTree: find_all (4 hojas: A11, A2, B, C)")
-	var path: Array = []
-	for n in t.path_to_root(a11):
-		path.append(n.value)
-	_check(path == ["raíz", "A", "A1", "A11"], "NaryTree: camino de la raíz al nodo")
-	_check(b.is_leaf() and c.is_leaf() and not a.is_leaf(), "NaryTree: is_leaf")
+## Limpieza del nombre, guardado entre aperturas del juego y nickname dentro del ranking.
+func _test_player_profile() -> void:
+	var path := "user://test_profile.save"
+	var p: Node = PlayerProfileScript.new()
+	p.save_path = path
+	_check(p.load_profile() and not p.has_nickname(), "Perfil: sin archivo (primera vez) no hay nickname")
+	_check(p.clean("  Gabo   Yo  ") == "Gabo Yo", "Perfil: quita espacios sobrantes")
+	_check(p.clean("Ga<b>o;") == "Gabo", "Perfil: quita caracteres raros")
+	_check(p.clean("Ñandú_9-x") == "Ñandú_9-x", "Perfil: permite tildes, ñ, números, _ y -")
+	_check(p.clean("ABCDEFGHIJKLMNOPQRST").length() == p.MAX_LENGTH, "Perfil: recorta al largo máximo")
+	_check(not p.set_nickname("   ") and not p.set_nickname("a") and not p.has_nickname(), "Perfil: vacío o muy corto se rechaza")
+	_check(p.set_nickname("  Gabo ") and p.nickname == "Gabo", "Perfil: guarda el nombre limpio")
 
+	# "Cerrar y abrir el juego": otro perfil lee el mismo archivo.
+	var p2: Node = PlayerProfileScript.new()
+	p2.save_path = path
+	_check(p2.load_profile() and p2.nickname == "Gabo", "Perfil: el nickname se recuerda al volver a abrir")
 
-## Catálogo de mejoras (forma del árbol, 3 niveles por objeto) y reglas de compra de UpgradeManager.
-func _test_upgrade_tree() -> void:
-	var tree: NaryTree = UpgradeCatalog.build_tree()
-	_check(tree.root.children.size() == 3, "Mejoras: 3 categorías (armas, objetos, habilidades)")
-	var items: Array[NaryNode] = tree.find_all(func(n: NaryNode) -> bool: return (n.value as UpgradeData).level == 1)
-	_check(items.size() == 7, "Mejoras: 7 objetos (4 armas, 2 objetos, 1 habilidad)")
-	var chains_ok: bool = true
-	for item in items:
-		var l2: NaryNode = item.children[0]
-		var l3: NaryNode = l2.children[0]
-		chains_ok = chains_ok and (l2.value as UpgradeData).level == 2 and (l3.value as UpgradeData).level == 3 and l3.is_leaf()
-		chains_ok = chains_ok and (l2.value as UpgradeData).cost > 0 and (l3.value as UpgradeData).cost > (l2.value as UpgradeData).cost
-	_check(chains_ok, "Mejoras: cada objeto tiene nivel 1 > 2 > 3 y el 3 cuesta más que el 2")
-	_check(tree.size() == 1 + 3 + 7 * 3 and tree.height() == 5, "Mejoras: 25 nodos y altura 5")
+	# Archivo dañado: se pide el nombre de nuevo, sin romperse.
+	var file := FileAccess.open(path, FileAccess.WRITE)
+	file.store_string("{esto no es json")
+	file.close()
+	var p3: Node = PlayerProfileScript.new()
+	p3.save_path = path
+	_check(not p3.load_profile() and not p3.has_nickname(), "Perfil: archivo dañado -> sin nickname, sin romperse")
 
-	# Reglas de compra (sin jugador en escena: nada está obtenido, ni el objeto base).
-	var um: Node = UpgradeManagerScript.new()
-	um.tree = tree
-	um.add_xp(1000)
-	var pistol_2: NaryNode = tree.find(func(n: NaryNode) -> bool: return (n.value as UpgradeData).id == "pistola_2")
-	_check(um.xp == 1000 and pistol_2 != null, "Mejoras: add_xp suma")
-	um.add_xp(-5)
-	_check(um.xp == 1000, "Mejoras: add_xp ignora números negativos")
-	_check(um.get_status(pistol_2) == um.Status.LOCKED and not um.can_buy(pistol_2), "Mejoras: sin el objeto base no se compra el nivel 2")
-	var pistol_3: NaryNode = pistol_2.children[0]
-	_check(not um.can_buy(pistol_3), "Mejoras: sin el nivel 2 no se compra el nivel 3")
+	# El nickname viaja con la partida y se recupera del disco.
+	var rpath := "user://test_ranking_nick.save"
+	var sm: Node = ScoreManagerScript.new()
+	sm.save_path = rpath
+	sm.start_run()
+	sm.add_points(700)
+	var r: Dictionary = sm.submit(false, "Gabo")
+	_check(r["nickname"] == "Gabo", "Ranking: el resultado trae el nickname")
+	var sm2: Node = ScoreManagerScript.new()
+	sm2.load_from(rpath)
+	var e: Variant = sm2.ranking.find(r["score"], r["id"])
+	_check(e != null and e["value"]["nickname"] == "Gabo", "Ranking: el nickname se guarda y se carga")
 
-	# Estadísticas: se suman las mejoras compradas (se marcan a mano porque no hay jugador).
-	um._base_nodes["Pistola"] = pistol_2.parent
-	_check(um.stat("Pistola", "damage", 2.0) == 2.0 and um.stat("Arma rara", "damage", 7.0) == 7.0, "Mejoras: stat sin compras = valor base")
-	um._purchased["pistola_2"] = true
-	um._purchased["pistola_3"] = true
-	_check(is_equal_approx(um.stat("Pistola", "fire_rate", 2.0), 3.0) and um.stat("Pistola", "damage", 2.0) == 3.0, "Mejoras: stat suma los niveles comprados")
-	um.reset()
-	_check(um.xp == 0 and um.stat("Pistola", "damage", 2.0) == 2.0, "Mejoras: reset borra XP y compras")
-	um.free()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(rpath))
+	for n in [p, p2, p3, sm, sm2]:
+		n.free()
