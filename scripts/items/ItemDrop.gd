@@ -1,16 +1,20 @@
-class_name ItemDrop
-extends RefCounted
-## Ayudante estático: decide si un enemigo suelta un ítem al morir.
+extends Node
+## Autoload "ItemDrop". Decide si un enemigo suelta un ítem al morir.
+## OJO: Al ser Autoload, NO lleva "class_name ItemDrop" para no chocar con el nombre global.
 
-## Probabilidad de soltar un arma nueva (0.0 a 1.0). Se elige al azar entre DROP_WEAPONS.
-const WEAPON_CHANCE: float = 0.15
-## Probabilidad de soltar una bomba (0.0 a 1.0).
-const BOMB_CHANCE: float = 0.20
-## Probabilidad de soltar un dash (0.0 a 1.0).
-const DASH_CHANCE: float = 0.15
-## Probabilidad de soltar un corazón (0.0 a 1.s0).
-const HEART_CHANCE: float = 0.25
-## Armas que se pueden encontrar en el suelo (no se sueltan las que el jugador ya tiene ni las que ya están en el suelo).
+# --- Probabilidades base (no cambian) ---
+const _BASE_WEAPON: float = 0.15
+const _BASE_BOMB: float = 0.20
+const _BASE_DASH: float = 0.15
+const _BASE_HEART: float = 0.25
+
+# --- Probabilidades actuales (pueden cambiar por eventos) ---
+var WEAPON_CHANCE: float = _BASE_WEAPON
+var BOMB_CHANCE: float = _BASE_BOMB
+var DASH_CHANCE: float = _BASE_DASH
+var HEART_CHANCE: float = _BASE_HEART
+
+## Armas que se pueden encontrar en el suelo
 const DROP_WEAPONS := [
 	preload("res://resources/weapons/Escopeta.tres"),
 	preload("res://resources/weapons/Bazuca.tres"),
@@ -24,50 +28,67 @@ const DROP_DASH: AbilityData = preload("res://resources/abilities/Dash.tres")
 const DROP_CONSUMABLE: ConsumableData = preload("res://resources/consumables/Corazon.tres")
 
 
+## Multiplica las probabilidades base (ej. 2.0 para duplicar en "Hora del botín").
+func set_chance_multiplier(mult: float) -> void:
+	WEAPON_CHANCE = _BASE_WEAPON * mult
+	BOMB_CHANCE = _BASE_BOMB * mult
+	DASH_CHANCE = _BASE_DASH * mult
+	HEART_CHANCE = _BASE_HEART * mult
+
+## Restaura las probabilidades a la normalidad.
+func reset_chances() -> void:
+	set_chance_multiplier(1.0)
+
+
 ## Tira los dados y, si toca, deja un ítem en la posición de source.
-static func try_drop(source: Node2D) -> void:
+func try_drop(source: Node2D) -> void:
 	var roll: float = randf()
 	var item := ItemPickup.new()
-	if roll < WEAPON_CHANCE:
+	
+	# Calculamos los límites acumulados basados en las variables actuales
+	var limit_weapon: float = WEAPON_CHANCE
+	var limit_bomb: float = limit_weapon + BOMB_CHANCE
+	var limit_dash: float = limit_bomb + DASH_CHANCE
+	var limit_heart: float = limit_dash + HEART_CHANCE
+
+	if roll < limit_weapon:
 		var weapon: WeaponData = _pick_weapon(source)
 		if weapon == null:
-			item.free()  # ya tiene todas las armas: no hay nada que soltar
+			item.free()
 			return
 		item.kind = ItemPickup.Kind.WEAPON
 		item.weapon = weapon
-	elif roll < WEAPON_CHANCE + BOMB_CHANCE:
+	elif roll < limit_bomb:
 		if _stack_full(source, DROP_BOMB):
-			item.free()  # ya lleva el máximo de bombas: no se suelta otra
+			item.free()
 			return
 		item.kind = ItemPickup.Kind.CONSUMABLE
 		item.consumable = DROP_BOMB
-	elif roll < WEAPON_CHANCE + BOMB_CHANCE + DASH_CHANCE:
+	elif roll < limit_dash:
 		var player := _get_player(source)
 		if (player != null and player.ability == DROP_DASH) or ItemPickup.is_on_floor(ItemPickup.Kind.ABILITY, DROP_DASH):
-			item.free()  # ya tiene el dash, o ya hay uno en el suelo: no se suelta otro
+			item.free()
 			return
 		item.kind = ItemPickup.Kind.ABILITY
 		item.ability = DROP_DASH
-	elif roll < WEAPON_CHANCE + BOMB_CHANCE + DASH_CHANCE + HEART_CHANCE:
+	elif roll < limit_heart:
 		if _stack_full(source, DROP_CONSUMABLE):
-			item.free()  # ya lleva el máximo de corazones: no se suelta otro
+			item.free()
 			return
 		item.kind = ItemPickup.Kind.CONSUMABLE
 		item.consumable = DROP_CONSUMABLE
 	else:
-		item.free()  # no toca ítem
+		item.free()
 		return
 
-	# Se hace en diferido porque el enemigo muere dentro de una colisión de la bala,
-	# y Godot no permite agregar áreas de colisión mientras procesa la física.
 	var position: Vector2 = source.global_position
 	ItemPickup.register(item)
 	source.get_tree().current_scene.add_child.call_deferred(item)
 	item.set_deferred("global_position", position)
 
 
-## Elige al azar un arma de DROP_WEAPONS que el jugador todavía no tenga (null si ya las tiene todas).
-static func _pick_weapon(source: Node2D) -> WeaponData:
+## Elige al azar un arma de DROP_WEAPONS que el jugador todavía no tenga.
+func _pick_weapon(source: Node2D) -> WeaponData:
 	var player := _get_player(source)
 	var candidates: Array[WeaponData] = []
 	for w in DROP_WEAPONS:
@@ -80,11 +101,11 @@ static func _pick_weapon(source: Node2D) -> WeaponData:
 
 
 ## true si el jugador ya lleva el máximo de unidades de ese objeto.
-static func _stack_full(source: Node2D, data: ConsumableData) -> bool:
+func _stack_full(source: Node2D, data: ConsumableData) -> bool:
 	var player := _get_player(source)
 	return player != null and player.get_consumable_count(data) >= Player.MAX_CONSUMABLE_STACK
 
 
 ## El jugador de la partida (null si no se encuentra).
-static func _get_player(source: Node2D) -> Player:
+func _get_player(source: Node2D) -> Player:
 	return source.get_tree().get_first_node_in_group("player") as Player

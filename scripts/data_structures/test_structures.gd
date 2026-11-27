@@ -24,6 +24,7 @@ func _ready() -> void:
 	_test_avl_preorder_rebuild()
 	_test_score_manager()
 	_test_player_profile()
+	_test_interval_tree()
 	print("--- Resultado: %d OK, %d fallos ---" % [_passed, _failed])
 
 
@@ -381,3 +382,43 @@ func _test_player_profile() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(rpath))
 	for n in [p, p2, p3, sm, sm2]:
 		n.free()
+
+# ---------------------------------------------------------------------------
+# Árbol de intervalos (eventos temporales)
+# ---------------------------------------------------------------------------
+
+func _test_interval_tree() -> void:
+	var t := IntervalTree.new()
+	t.insert(1.0, 4.0, "A", {"type": "frenzy"})
+	t.insert(3.0, 7.0, "B", {"type": "loot"})
+	t.insert(10.0, 12.0, "C", {"type": "danger"})
+
+	var p := t.query_point(3.5)
+	_check(p.size() == 2, "Interval: 2 eventos activos en 3.5")
+
+	var ov := t.query_overlap(2.0, 5.0)
+	_check(ov.size() == 2, "Interval: solape con A y B")
+
+	var none := t.query_point(20.0)
+	_check(none.is_empty(), "Interval: nadie activo en 20")
+
+	var intervals := [Vector2(1, 4), Vector2(3, 7), Vector2(10, 12)]
+	for i in range(30):
+		var a := randf() * 12.0
+		var b := a + randf() * 4.0
+		var expected := 0
+		for v in intervals:
+			if v.x <= b and v.y >= a:
+				expected += 1
+		var got := t.query_overlap(a, b).size()
+		if got != expected:
+			_check(false, "Interval: solape aleatorio %f-%f (esperado %d, obtuvo %d)" % [a, b, expected, got])
+			return
+	_check(true, "Interval: solapes aleatorios coinciden con la búsqueda lineal")
+
+	for i in range(200):
+		t.insert(float(i * 2), float(i * 2 + 1), "ev%d" % i, {})
+	_check(t.root.height <= 12, "Interval: altura AVL acotada (%d)" % t.root.height)
+
+	var removed := t.remove("A")
+	_check(removed and t.query_point(3.5).size() == 1, "Interval: remove A deja solo B en 3.5")

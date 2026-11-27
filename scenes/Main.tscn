@@ -1,5 +1,6 @@
 [gd_scene format=3 uid="uid://bxopteykr2dg5"]
 
+[ext_resource type="Script" uid="uid://t0im44mo7rr3" path="res://scripts/managers/Main.gd" id="1_bjd11"]
 [ext_resource type="PackedScene" uid="uid://dbbpoeqhdi12b" path="res://scenes/Player.tscn" id="1_elqb8"]
 [ext_resource type="Texture2D" uid="uid://c7glof864oi4v" path="res://Tilesets/Freud (1).png" id="1_nxtc6"]
 [ext_resource type="PackedScene" uid="uid://d044kcbmq1tgw" path="res://scenes/enemy.tscn" id="2_rarhs"]
@@ -10,6 +11,7 @@
 [ext_resource type="Resource" uid="uid://cdbx4u5nl87i1" path="res://resources/weapons/Pistola.tres" id="7_lhr70"]
 [ext_resource type="Script" uid="uid://dmawyu8jhvjtd" path="res://scripts/managers/GameFlow.gd" id="7_nxtc6"]
 [ext_resource type="AudioStream" uid="uid://blyajo1nswxgy" path="res://assets/musica/bienvenidoalapatriamilagro.mp3" id="10_lhr70"]
+[ext_resource type="Script" uid="uid://bolhigylvcaef" path="res://scripts/managers/EventTimeline.gd" id="11_wp0k4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rkej8"]
 size = Vector2(4168, 60)
@@ -25,6 +27,7 @@ size = Vector2(29.800003, 514.6)
 
 [node name="Main" type="Node2D" unique_id=1813334530]
 position = Vector2(-2, 0)
+script = ExtResource("1_bjd11")
 
 [node name="TextureRect" type="TextureRect" parent="." unique_id=348086992]
 offset_left = -1785.0
@@ -92,3 +95,6 @@ stream = ExtResource("10_lhr70")
 volume_db = 1.793
 autoplay = true
 parameters/looping = true
+
+[node name="EventTimeline" type="Node" parent="." unique_id=1729460774]
+script = ExtResource("11_wp0k4")

@@ -21,6 +21,7 @@ ScreenManager="*uid://c8tvysgb2wjig"
 ScoreManager="*res://scripts/managers/ScoreManager.gd"
 UpgradeManager="*res://scripts/managers/UpgradeManager.gd"
 PlayerProfile="*uid://mijmo7jrlghk"
+ItemDrop="*uid://ugt7wko6eqeo"
 
 [display]
 
