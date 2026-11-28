@@ -86,6 +86,7 @@ func _shoot_at_player() -> void:
 	if not is_inside_tree():
 		return
 	cooldown.start()
+	AudioManager.play("shoot", -12.0, 0.1, 0.7)
 	var base_dir := (target - muzzle.global_position).normalized()
 	for i in weapon.bullets_per_shot:
 		var angle := deg_to_rad(randf_range(-weapon.spread_degrees, weapon.spread_degrees))
@@ -103,7 +104,10 @@ func take_damage(amount: int) -> void:
 	health_bar.value = health
 	if health <= 0:
 		_dead = true
+		GameFeel.enemy_died(global_position)
 		died.emit()
 		UpgradeManager.drop_xp(self, xp_min, xp_max)
 		ItemDrop.try_drop(self)
 		queue_free()
+	else:
+		GameFeel.enemy_hit($AnimatedSprite2D)

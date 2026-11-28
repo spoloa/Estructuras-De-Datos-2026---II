@@ -19,6 +19,8 @@ signal ability_changed(data: AbilityData)
 ## Se emite cuando se usa la habilidad con éxito.
 signal ability_used(data: AbilityData)
 ## Se emite cuando la vida llega a 0.
+## Se emite cada vez que el jugador recibe daño (no al curarse). Rompe el combo del puntaje.
+signal damaged(amount: int)
 signal died
 
 ## Velocidad de movimiento en píxeles por segundo.
@@ -268,6 +270,8 @@ func take_damage(amount: int) -> void:
 		return  # el dash esquiva el daño mientras dura
 	health = maxi(0, health - amount)
 	health_changed.emit(health, max_health)
+	damaged.emit(amount)
+	GameFeel.player_hurt(sprite)
 	if health == 0:
 		died.emit()
 		set_physics_process(false)
@@ -342,8 +346,10 @@ func _shoot() -> void:
 		return
 	_cooldown = 1.0 / maxf(0.05, UpgradeManager.stat(weapon.weapon_name, "fire_rate", weapon.fire_rate))
 	if weapon.attack_type == WeaponData.AttackType.MELEE:
+		AudioManager.play("swing", -2.0, 0.1)
 		_melee_attack()
 	else:
+		AudioManager.play("shoot", -6.0, 0.08)
 		_fire_projectiles()
 
 

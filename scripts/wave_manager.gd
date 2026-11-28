@@ -44,6 +44,8 @@ var waves: Queue = Queue.new()
 ## cuente una sola vez aunque su señal 'died' se emita dos veces. Guarda el tipo de cada enemigo.
 var _enemies: Dictionary = {}
 var _wave_number: int = 0
+## Segundos que tardan en aparecer todos los enemigos de la oleada actual (lo usa el bono de rapidez del puntaje).
+var current_fast_time: float = 0.0
 var _reported_wave: int = 0  # última oleada anunciada con wave_completed
 var _spawning: bool = false
 var _starting_wave: bool = false
@@ -103,6 +105,11 @@ func _start_next_wave() -> void:
 
 	var wave: Dictionary = waves.dequeue()   # Queue: sale la primera oleada encolada
 	_wave_number += 1
+	var enemy_count: int = 0
+	for key in wave:
+		if key != "interval":
+			enemy_count += wave[key]
+	current_fast_time = enemy_count * wave.get("interval", spawn_interval) + spawn_warning_time
 	wave_started.emit(_wave_number)
 
 	# PriorityQueue: ordena los enemigos de esta oleada por prioridad

@@ -24,6 +24,8 @@ func _ready() -> void:
 	_test_avl_preorder_rebuild()
 	_test_score_manager()
 	_test_player_profile()
+	_test_combo_and_bonus()
+	_test_ranking_limit()
 	_test_interval_tree()
 	print("--- Resultado: %d OK, %d fallos ---" % [_passed, _failed])
 
@@ -284,14 +286,14 @@ func _test_score_manager() -> void:
 	sm.add_kill("shooter")
 	sm.add_kill("tipo desconocido")
 	sm.add_wave_bonus(1)
-	_check(sm.score == 100 + 150 + 50 + 200, "Puntaje: enemigos y bono de oleada suman bien")
+	_check(sm.score == 100 + 150 + 75 + 200, "Puntaje: enemigos (la 3.ª kill ya va con combo x1.5) y bono de oleada suman bien")
 	sm.run_time = 65.0
 	var r1: Dictionary = sm.submit(true)
-	_check(r1["score"] == 500 + 1000, "Puntaje: la victoria suma su bono")
+	_check(r1["score"] == 525 + 1000, "Puntaje: la victoria suma su bono")
 	_check(r1["rank"] == 1 and r1["total"] == 1 and not r1["new_record"], "Ranking: primera partida es 1.ª pero no es 'récord'")
 	_check(sm.submit(true)["id"] == r1["id"] and sm.ranking.size() == 1, "Ranking: submit dos veces no duplica la partida")
 	sm.add_points(999)
-	_check(sm.score == 1500, "Puntaje: tras terminar la partida ya no suma")
+	_check(sm.score == 1525, "Puntaje: tras terminar la partida ya no suma")
 
 	sm.start_run()
 	sm.add_kill("chaser")
@@ -300,7 +302,7 @@ func _test_score_manager() -> void:
 	_check(not r2["victory"] and r2["waves"] == 0, "Ranking: la derrota guarda 0 oleadas y victory = false")
 
 	sm.start_run()
-	sm.add_points(1500)
+	sm.add_points(1525)
 	var r3: Dictionary = sm.submit(false)
 	_check(r3["rank"] == 2, "Ranking: empate con el 1.º queda detrás (llegó después)")
 	sm.start_run()
@@ -317,7 +319,7 @@ func _test_score_manager() -> void:
 	_check(sm2.ranking.get_top(4) == sm.ranking.get_top(4), "Guardado: mismas partidas en las mismas posiciones")
 	var viejo: Variant = sm2.ranking.find(r1["score"], r1["id"])
 	_check(viejo != null and viejo["value"]["time"] == 65.0 and viejo["value"]["victory"], "Guardado: conserva tiempo y victoria")
-	# Orden final: 2000 (r4), 1500 (r1, llegó antes), 1500 (r3), 100 (r2).
+	# Orden final: 2000 (r4), 1525 (r1, llegó antes), 1525 (r3), 100 (r2).
 	_check(sm2.ranking.rank(r4["score"], r4["id"]) == 1, "Guardado: el mejor puntaje sigue 1.º")
 	_check(sm2.ranking.rank(r1["score"], r1["id"]) == 2 and sm2.ranking.rank(r3["score"], r3["id"]) == 3, "Guardado: el empate conserva su orden de llegada")
 
@@ -422,3 +424,96 @@ func _test_interval_tree() -> void:
 
 	var removed := t.remove("A")
 	_check(removed and t.query_point(3.5).size() == 1, "Interval: remove A deja solo B en 3.5")
+
+
+# ---------------------------------------------------------------------------
+# Combos, bonos y límite de partidas
+# ---------------------------------------------------------------------------
+
+## Multiplicador por kills seguidas, combo roto por daño o por tiempo, bonos de oleada.
+func _test_combo_and_bonus() -> void:
+	var sm: Node = ScoreManagerScript.new()
+	sm.save_path = "user://test_combo.save"
+	_check(sm.multiplier_for(0) == 1.0 and sm.multiplier_for(2) == 1.0, "Combo: 0 a 2 kills no multiplican")
+	_check(sm.multiplier_for(3) == 1.5 and sm.multiplier_for(5) == 1.5, "Combo: 3 kills dan x1.5")
+	_check(sm.multiplier_for(6) == 2.0 and sm.multiplier_for(9) == 2.0, "Combo: 6 kills dan x2")
+	_check(sm.multiplier_for(10) == 3.0 and sm.multiplier_for(99) == 3.0, "Combo: 10 kills o más dan x3")
+
+	_check(sm.add_kill("chaser") == 0, "Combo: sin partida en curso no suma")
+	sm.start_run()
+	var total: int = 0
+	for i in 10:
+		total += sm.add_kill("chaser")
+	# 2 kills x1 (200) + 3 x1.5 (450) + 4 x2 (800) + 1 x3 (300)
+	_check(total == 1750 and sm.score == 1750, "Combo: 10 kills seguidas suman 1750")
+	_check(sm.combo_kills == 10 and sm.best_combo == 10, "Combo: cuenta las kills seguidas")
+
+	sm.on_player_hit()
+	_check(sm.combo_kills == 0 and sm.best_combo == 10, "Combo: el daño lo rompe pero se recuerda el mejor")
+	_check(sm.add_kill("chaser") == 100, "Combo: tras romperse vuelve a x1")
+
+	sm.add_kill("chaser")
+	sm._process(sm.COMBO_WINDOW - 0.5)
+	_check(sm.combo_kills == 2, "Combo: sigue vivo antes de que pase la ventana")
+	sm._process(1.0)
+	_check(sm.combo_kills == 0, "Combo: se rompe si pasa mucho tiempo sin matar")
+
+	# Bono de rapidez: máximo si termina a tiempo, baja hasta 0 pasados 30 s.
+	_check(sm.time_bonus(0.0, 10.0) == 300 and sm.time_bonus(10.0, 10.0) == 300, "Bono de tiempo: terminar rápido da el máximo")
+	_check(sm.time_bonus(25.0, 10.0) == 150, "Bono de tiempo: a mitad de la ventana da la mitad")
+	_check(sm.time_bonus(40.0, 10.0) == 0 and sm.time_bonus(999.0, 10.0) == 0, "Bono de tiempo: muy lento no da nada")
+
+	# Oleada rápida y sin daño: base + rapidez + sin daño.
+	sm.start_run()
+	sm.start_wave(1, 10.0)
+	sm._process(10.0)
+	var b1: Dictionary = sm.add_wave_bonus(1)
+	_check(b1["base"] == 200 and b1["time"] == 300 and b1["clean"] == 300 and b1["total"] == 800, "Bono de oleada: base + rapidez + sin daño = 800")
+	_check(sm.score == 800 and sm.waves_completed == 1, "Bono de oleada: se suma al puntaje")
+	# Oleada con daño y lenta.
+	sm.start_wave(2, 10.0)
+	sm.on_player_hit()
+	sm._process(25.0)
+	var b2: Dictionary = sm.add_wave_bonus(2)
+	_check(b2["clean"] == 0 and b2["time"] == 150 and b2["total"] == 350, "Bono de oleada: con daño no hay bono sin daño")
+	sm.free()
+
+
+## Con el límite de partidas guardadas se borran las peores y el AVL sigue válido.
+func _test_ranking_limit() -> void:
+	var path := "user://test_limit.save"
+	var sm: Node = ScoreManagerScript.new()
+	sm.save_path = path
+	sm.max_saved = 3
+	var results: Array[Dictionary] = []
+	for score in [300, 100, 500, 200, 400]:
+		sm.start_run()
+		sm.add_points(score)
+		results.append(sm.submit(false))
+	_check(sm.ranking.size() == 3 and sm.ranking.validate(), "Límite: solo quedan 3 partidas y el AVL es válido")
+	var top: Array = sm.ranking.get_top(3)
+	_check(top[0]["key"] == 500 and top[1]["key"] == 400 and top[2]["key"] == 300, "Límite: se quedan las 3 mejores")
+	_check(results[3]["in_ranking"] and results[4]["in_ranking"], "Límite: una partida mejor que la peor entra y desplaza a la peor")
+
+	# Una partida peor que todas queda fuera, pero el resultado sigue diciendo su posición.
+	sm.start_run()
+	sm.add_points(50)
+	var peor: Dictionary = sm.submit(false)
+	_check(not peor["in_ranking"] and peor["rank"] == 4 and sm.ranking.size() == 3, "Límite: una partida pésima queda fuera (puesto 4)")
+
+	# Un archivo con más partidas que el límite se recorta al cargar.
+	var big: Node = ScoreManagerScript.new()
+	big.save_path = path
+	big.max_saved = 10
+	for score in [10, 20, 30, 40, 50]:
+		big.start_run()
+		big.add_points(score)
+		big.submit(false)
+	var small: Node = ScoreManagerScript.new()
+	small.max_saved = 3
+	small.load_from(path)
+	_check(small.ranking.size() == 3 and small.ranking.validate(), "Límite: al cargar se recorta al máximo")
+	_check(small.ranking.get_top(3)[2]["key"] == 30 and small.ranking.get_top(1)[0]["key"] == 50, "Límite: al recortar se conservan las mejores (50, 40, 30)")
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	for n in [sm, big, small]:
+		n.free()

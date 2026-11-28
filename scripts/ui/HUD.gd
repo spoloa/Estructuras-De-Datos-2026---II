@@ -42,6 +42,9 @@ var _ability_status: Label
 var _ability: AbilityData  # habilidad que se muestra (null = el panel está oculto)
 var _wave_value: Label
 var _score_value: Label
+var _combo_frame: PanelContainer
+var _combo_label: Label
+var _combo_bar: ProgressBar
 var _xp_value: Label
 var _banner: Label
 var _health_tween: Tween
@@ -81,6 +84,7 @@ func _ready() -> void:
 	_build_item(left)
 	_build_ability()
 	_build_wave(right)
+	_build_combo(right)
 	_build_banner()
 	_ignore_mouse(self)  # el HUD nunca debe bloquear clics
 
@@ -285,6 +289,8 @@ func _update_item_cooldown() -> void:
 
 
 func _process(_delta: float) -> void:
+	if _combo_frame != null and _combo_frame.visible:
+		_combo_bar.value = ScoreManager.combo_fraction()
 	_update_item_cooldown()
 	_update_ability_cooldown()
 
@@ -426,6 +432,40 @@ func _build_wave(parent: Control) -> void:
 
 
 ## Aviso grande que aparece arriba al centro y se desvanece solo.
+## Marco del combo (debajo de la oleada): "COMBO 4 x1.5" y una barra que se vacía hasta romperse.
+func _build_combo(parent: Control) -> void:
+	_combo_frame = _make_frame()
+	_combo_frame.custom_minimum_size = Vector2(150, 0)
+	_combo_frame.visible = false
+	parent.add_child(_combo_frame)
+
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 2)
+	_combo_frame.add_child(col)
+
+	var caption := _make_caption("COMBO")
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	col.add_child(caption)
+
+	_combo_label = Label.new()
+	_combo_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_combo_label.add_theme_font_size_override("font_size", 26)
+	_combo_label.add_theme_color_override("font_color", Color(1.0, 0.55, 0.15))
+	col.add_child(_combo_label)
+
+	_combo_bar = ProgressBar.new()
+	_combo_bar.show_percentage = false
+	_combo_bar.max_value = 1.0
+	_combo_bar.custom_minimum_size = Vector2(0, 8)
+	var fill := StyleBoxFlat.new()
+	fill.bg_color = Color(1.0, 0.55, 0.15)
+	var back := StyleBoxFlat.new()
+	back.bg_color = PIP_OFF
+	_combo_bar.add_theme_stylebox_override("fill", fill)
+	_combo_bar.add_theme_stylebox_override("background", back)
+	col.add_child(_combo_bar)
+
+
 func _build_banner() -> void:
 	var box := MarginContainer.new()
 	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -519,6 +559,7 @@ func _connect_signals() -> void:
 		wave_manager.all_waves_completed.connect(_on_all_waves_completed)
 
 	ScoreManager.score_changed.connect(_on_score_changed)
+	ScoreManager.combo_changed.connect(_on_combo_changed)
 	_on_score_changed(ScoreManager.score)
 	UpgradeManager.xp_changed.connect(_on_xp_changed)
 	_on_xp_changed(UpgradeManager.xp)
@@ -526,6 +567,13 @@ func _connect_signals() -> void:
 
 func _on_score_changed(new_score: int) -> void:
 	_score_value.text = str(new_score)
+
+
+## Muestra u oculta el marco del combo y actualiza su texto ("4  x1.5").
+func _on_combo_changed(kills: int, multiplier: float) -> void:
+	_combo_frame.visible = kills > 0
+	if kills > 0:
+		_combo_label.text = "%d  x%s" % [kills, ScoreManager.multiplier_text(multiplier)]
 
 
 func _on_xp_changed(new_xp: int) -> void:

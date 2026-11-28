@@ -141,6 +141,7 @@ func _on_body_entered(body: Node2D) -> void:
 				return  # no repetir la misma habilidad
 			player.add_ability(ability)
 			_remove_duplicates()
+	AudioManager.play("pickup")
 	queue_free()
 
 

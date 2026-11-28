@@ -54,8 +54,11 @@ func _add_result(box: VBoxContainer) -> void:
 		box.add_child(record)
 
 	var details := Label.new()
-	details.text = "Posición: #%d de %d\nOleadas completadas: %d\nTiempo: %s" % [
-		_result["rank"], _result["total"], _result["waves"], ScoreManager.format_time(_result["time"])
+	var position_text: String = "Posición: #%d de %d" % [_result["rank"], _result["total"]]
+	if not _result.get("in_ranking", true):
+		position_text = "Fuera del ranking (solo se guardan las %d mejores)" % ScoreManager.MAX_SAVED
+	details.text = "%s\nOleadas completadas: %d\nMejor combo: %d\nTiempo: %s" % [
+		position_text, _result["waves"], _result.get("best_combo", 0), ScoreManager.format_time(_result["time"])
 	]
 	details.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(details)

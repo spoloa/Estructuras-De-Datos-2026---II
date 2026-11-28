@@ -81,6 +81,8 @@ func _explode() -> void:
 	if _exploded:
 		return
 	_exploded = true
+	AudioManager.play("explosion", -5.0, 0.1)
+	GameFeel.shake(6.0, 0.2)
 
 	_damage_area()
 

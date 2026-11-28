@@ -71,6 +71,7 @@ func add_button(parent: Control, button_text: String, callback: Callable) -> But
 	button.text = button_text
 	button.custom_minimum_size = Vector2(0, 48)
 	button.pressed.connect(callback)
+	button.pressed.connect(func() -> void: AudioManager.play("click", -4.0))
 	parent.add_child(button)
 	return button
 

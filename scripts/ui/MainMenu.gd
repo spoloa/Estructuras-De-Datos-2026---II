@@ -20,6 +20,7 @@ var _player_label: Label
 func _ready() -> void:
 	# En el menú principal Esc no debe abrir la pausa.
 	ScreenManager.pause_enabled = false
+	AudioManager.play_music("menu")
 
 	var game_title: String = ProjectSettings.get_setting("application/config/name", "Juego")
 	var box := build_layout(game_title)

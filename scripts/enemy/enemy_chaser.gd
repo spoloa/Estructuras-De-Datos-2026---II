@@ -80,7 +80,10 @@ func take_damage(amount: int) -> void:
 	health_bar.value = health
 	if health <= 0:
 		_dead = true
+		GameFeel.enemy_died(global_position)
 		died.emit()
 		UpgradeManager.drop_xp(self, xp_min, xp_max)
 		ItemDrop.try_drop(self)
 		queue_free()
+	else:
+		GameFeel.enemy_hit(sprite)

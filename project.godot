@@ -22,6 +22,8 @@ ScoreManager="*res://scripts/managers/ScoreManager.gd"
 UpgradeManager="*res://scripts/managers/UpgradeManager.gd"
 PlayerProfile="*uid://mijmo7jrlghk"
 ItemDrop="*uid://ugt7wko6eqeo"
+AudioManager="*uid://c1h5m5aelfjdy"
+GameFeel="*uid://bsrjsacy46ltm"
 
 [display]
 

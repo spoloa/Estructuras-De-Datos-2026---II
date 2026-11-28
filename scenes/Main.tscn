@@ -10,7 +10,6 @@
 [ext_resource type="Script" uid="uid://bvw8flucf2bag" path="res://scripts/weapons/WeaponData.gd" id="6_q8u5g"]
 [ext_resource type="Resource" uid="uid://cdbx4u5nl87i1" path="res://resources/weapons/Pistola.tres" id="7_lhr70"]
 [ext_resource type="Script" uid="uid://dmawyu8jhvjtd" path="res://scripts/managers/GameFlow.gd" id="7_nxtc6"]
-[ext_resource type="AudioStream" uid="uid://blyajo1nswxgy" path="res://assets/musica/bienvenidoalapatriamilagro.mp3" id="10_lhr70"]
 [ext_resource type="Script" uid="uid://bolhigylvcaef" path="res://scripts/managers/EventTimeline.gd" id="11_wp0k4"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_rkej8"]
@@ -89,12 +88,6 @@ script = ExtResource("7_nxtc6")
 player = NodePath("../Player")
 wave_manager = NodePath("../WaveManager")
 end_delay = 1.5
-
-[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1281693585]
-stream = ExtResource("10_lhr70")
-volume_db = 1.793
-autoplay = true
-parameters/looping = true
 
 [node name="EventTimeline" type="Node" parent="." unique_id=1729460774]
 script = ExtResource("11_wp0k4")
